@@ -26,7 +26,7 @@ app.post("/login", (req, res) => {
 const accounts = [];
 
 // Route for creating a new account
-app.post('/accounts', (req, res) => {
+app.post('/register', (req, res) => {
   const { name, email, password, role } = req.body;
 
   // Validate data
@@ -55,6 +55,32 @@ app.post('/accounts', (req, res) => {
   // Return the new account details as the response
   res.status(201).json(newAccount);
 });
+
+app.post('/invite', (req, res) => {
+  const { email, role } = req.body;
+
+  // Validate data
+  if (!email || !role) {
+    return res.status(400).json({ message: 'Please provide both email and role.' });
+  }
+
+  // Check if the role is valid (Admin, Management, Intern, etc.)
+  const validRoles = ['Admin', 'Management', 'Intern', 'Evaluator', /* Add more roles as needed */];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ message: 'Invalid role provided.' });
+  }
+
+  // Send invitation email
+  sendInvitationEmail(email, role)
+    .then(() => {
+      res.json({ message: 'Invitation sent successfully.' });
+    })
+    .catch((error) => {
+      console.error('Error sending invitation email:', error);
+      res.status(500).json({ message: 'Error sending invitation email.' });
+    });
+});
+
 
 // Start the server
 app.listen(port, () => {
