@@ -18,7 +18,7 @@ app.post("/login", (req, res) => {
       token: authenticatedUser.token,
     });
   } else {
-    res.status(401).json({ success: false, message: "Invalid credentials" });
+    res.status(401).json({ success: false, message: "Invalid credentials." });
   }
 });
 
