@@ -10,14 +10,26 @@ const users = [
   {
     id: 1,
     username: 'intern1',
-    password: bcrypt.hashSync("intern123", saltRounds), // Password: internpassword
+    password: bcrypt.hashSync('internpassword', saltRounds),
     role: 'Intern',
   },
   {
     id: 2,
-    username: 'admin',
-    password: bcrypt.hashSync("admin123", saltRounds), // Password: adminpassword
+    username: 'admin1',
+    password: bcrypt.hashSync('adminpassword', saltRounds),
     role: 'Admin',
+  },
+  {
+    id: 3,
+    username: 'mentor1',
+    password: bcrypt.hashSync('mentorpassword', saltRounds),
+    role: 'Mentor',
+  },
+  {
+    id: 4,
+    username: 'evaluator1',
+    password: bcrypt.hashSync('evaluatorpassword', saltRounds),
+    role: 'Evaluator',
   },
   // Add more users with different roles as needed...
 ];
