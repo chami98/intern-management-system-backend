@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const port = 5000;
-const { authenticateUser , jwtSecret } = require("./auth");
+const { authenticateUser, jwtSecret, users } = require("./auth");
 
 // Middleware to parse incoming JSON data
 app.use(express.json());
@@ -80,6 +80,36 @@ app.post('/invite', (req, res) => {
       res.status(500).json({ message: 'Error sending invitation email.' });
     });
 });
+
+// Route for upgrading/downgrading permissions
+app.put('/api/users/:id/role', (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body;
+
+  // Validate data
+  if (!role) {
+    return res.status(400).json({ message: 'Please provide the new role.' });
+  }
+
+  // Check if the role is valid (Admin, Mentor, Intern, etc.)
+  const validRoles = ['Admin', 'Mentor', 'Intern', 'Evaluator', /* Add more roles as needed */];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ message: 'Invalid role provided.' });
+  }
+
+  // Find the user by ID in the database (Database link karanna)
+  const user = users.find((user) => user.id === parseInt(id));
+  if (!user) {
+    return res.status(404).json({ message: 'User not found.' });
+  }
+
+  // Update the user's role
+  user.role = role;
+
+  // Respond with the updated user data
+  res.json(user);
+});
+
 
 
 // Start the server

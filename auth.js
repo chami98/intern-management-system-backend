@@ -1,14 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
-
-const internPlainPassword = 'intern123';
-const adminPlainPassword = 'admin123';
-
 const saltRounds = 10; // The number of salt rounds determines the complexity of the hashing
-
-const internHashedPassword = bcrypt.hashSync(internPlainPassword, saltRounds);
-const adminHashedPassword = bcrypt.hashSync(adminPlainPassword, saltRounds);
 
 // Replace this with your own secret key for JWT
 const jwtSecret = 'xtenship';
@@ -18,14 +10,14 @@ const users = [
   {
     id: 1,
     username: 'intern1',
-    password: internHashedPassword, // Password: internpassword
-    role: 'intern',
+    password: bcrypt.hashSync("intern123", saltRounds), // Password: internpassword
+    role: 'Intern',
   },
   {
     id: 2,
     username: 'admin',
-    password: adminHashedPassword, // Password: adminpassword
-    role: 'admin',
+    password: bcrypt.hashSync("admin123", saltRounds), // Password: adminpassword
+    role: 'Admin',
   },
   // Add more users with different roles as needed...
 ];
@@ -43,4 +35,4 @@ function authenticateUser(username, password) {
   return null;
 }
 
-module.exports = { authenticateUser , jwtSecret };
+module.exports = { authenticateUser, jwtSecret, users };
