@@ -7,7 +7,7 @@ const { authenticateUser, jwtSecret, users } = require("./auth");
 app.use(express.json());
 
 // Login route to authenticate users and issue JWT token
-app.post("/login", (req, res) => {
+app.post("/api/login", (req, res) => {
   const { username, password } = req.body;
   const authenticatedUser = authenticateUser(username, password);
 
@@ -26,7 +26,7 @@ app.post("/login", (req, res) => {
 const accounts = [];
 
 // Route for creating a new account
-app.post("/register", (req, res) => {
+app.post("/api/register", (req, res) => {
   const { name, email, password, role } = req.body;
 
   // Validate data
