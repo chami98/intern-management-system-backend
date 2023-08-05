@@ -110,6 +110,43 @@ app.put('/api/users/:id/role', (req, res) => {
   res.json(user);
 });
 
+const internProfiles = [];
+
+// Route to create an intern profile
+app.post('/api/interns', (req, res) => {
+  const data = req.body;
+
+  // Check if a record with the same name already exists
+  const existingProfile = internProfiles.find(profile => profile.name === data.name);
+  if (existingProfile) {
+    return res.status(409).json({ message: 'An intern profile with the same name already exists' });
+  }
+
+  // Create a new intern profile
+  const internProfile = {
+    name: data.name,
+    university: data.university,
+    interview_score: data.interview_score,
+    interview_feedback: data.interview_feedback,
+    evolution1_score: data.evolution1_score,
+    evolution1_feedback: data.evolution1_feedback,
+    evolution2_score: data.evolution2_score,
+    evolution2_feedback: data.evolution2_feedback,
+    accomplishments: data.accomplishments,
+    gpa: data.gpa,
+    project_details: data.project_details,
+    assigned_team: data.assigned_team,
+    mentor: data.mentor,
+    cv_url: data.cv_url,
+    status: 'Pending' // Set initial status to Pending
+  };
+
+  // Save the intern profile in the temporary data storage (database)
+  internProfiles.push(internProfile);
+
+  return res.status(201).json({ message: 'Intern profile created successfully', data: internProfile });
+});
+
 
 
 // Start the server
