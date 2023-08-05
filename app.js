@@ -147,6 +147,37 @@ app.post('/api/interns', (req, res) => {
   return res.status(201).json({ message: 'Intern profile created successfully', data: internProfile });
 });
 
+// Route to update an intern profile
+app.put('/api/interns/:name', (req, res) => {
+  const internName = req.params.name;
+  const data = req.body;
+
+  // Find the intern profile to be updated
+  const internProfile = internProfiles.find(profile => profile.name === internName);
+  if (!internProfile) {
+    return res.status(404).json({ message: 'Intern profile not found' });
+  }
+
+  // Update the intern profile information
+  internProfile.name = data.name;
+  internProfile.university = data.university;
+  internProfile.interview_score = data.interview_score;
+  internProfile.interview_feedback = data.interview_feedback;
+  internProfile.evolution1_score = data.evolution1_score;
+  internProfile.evolution1_feedback = data.evolution1_feedback;
+  internProfile.evolution2_score = data.evolution2_score;
+  internProfile.evolution2_feedback = data.evolution2_feedback;
+  internProfile.accomplishments = data.accomplishments;
+  internProfile.gpa = data.gpa;
+  internProfile.project_details = data.project_details;
+  internProfile.assigned_team = data.assigned_team;
+  internProfile.mentor = data.mentor;
+  internProfile.cv_url = data.cv_url;
+
+  return res.json({ message: 'Intern profile updated successfully', data: internProfile });
+});
+
+
 
 
 // Start the server
