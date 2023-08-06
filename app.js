@@ -8,7 +8,7 @@ const saltRounds = 10; // The number of salt rounds determines the complexity of
 
 app.use(cors());
 
-// Middleware to parse incoming JSON data
+// Middleware to parse incoming JSON
 app.use(express.json());
 
 // Login route to authenticate users and issue JWT token
