@@ -2,9 +2,13 @@ const express = require("express");
 const app = express();
 const port = 5000;
 const { authenticateUser, jwtSecret, users } = require("./auth");
+var cors = require('cors')
+
+app.use(cors())
 
 // Middleware to parse incoming JSON data
 app.use(express.json());
+
 
 // Login route to authenticate users and issue JWT token
 app.post("/api/login", (req, res) => {
