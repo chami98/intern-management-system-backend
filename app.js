@@ -2,13 +2,14 @@ const express = require("express");
 const app = express();
 const port = 5000;
 const { authenticateUser, jwtSecret, users } = require("./auth");
-var cors = require('cors')
+var cors = require("cors");
+const bcrypt = require("bcryptjs");
+const saltRounds = 10; // The number of salt rounds determines the complexity of the hashing
 
-app.use(cors())
+app.use(cors());
 
 // Middleware to parse incoming JSON data
 app.use(express.json());
-
 
 // Login route to authenticate users and issue JWT token
 app.post("/api/login", (req, res) => {
@@ -31,10 +32,10 @@ const accounts = [];
 
 // Route for creating a new account
 app.post("/api/register", (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { firstname, lastname, email, password, role } = req.body;
 
   // Validate data
-  if (!name || !email || !password || !role) {
+  if (!firstname || !lastname || !email || !password || !role) {
     return res
       .status(400)
       .json({ message: "Please provide all required fields." });
@@ -51,9 +52,10 @@ app.post("/api/register", (req, res) => {
   // Create a new account object
   const newAccount = {
     id: accounts.length + 1,
-    name,
+    firstname,
+    lastname,
     email,
-    password, // In a real-world scenario, you would hash the password before saving it.
+    password: bcrypt.hashSync(password, saltRounds), 
     role,
   };
 
@@ -168,12 +170,10 @@ app.post("/api/interns", (req, res) => {
   // Save the intern profile in the temporary data storage (database)
   internProfiles.push(internProfile);
 
-  return res
-    .status(201)
-    .json({
-      message: "Intern profile created successfully",
-      data: internProfile,
-    });
+  return res.status(201).json({
+    message: "Intern profile created successfully",
+    data: internProfile,
+  });
 });
 
 // Route to update an intern profile
