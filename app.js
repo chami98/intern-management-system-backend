@@ -55,7 +55,7 @@ app.post("/api/register", (req, res) => {
     firstname,
     lastname,
     email,
-    password: bcrypt.hashSync(password, saltRounds), 
+    password: bcrypt.hashSync(password, saltRounds),
     role,
   };
 
@@ -140,7 +140,7 @@ app.post("/api/interns", (req, res) => {
 
   // Check if a record with the same name already exists
   const existingProfile = internProfiles.find(
-    (profile) => profile.name === data.name
+    (profile) => profile.firstname === data.firstname
   );
   if (existingProfile) {
     return res
@@ -150,20 +150,18 @@ app.post("/api/interns", (req, res) => {
 
   // Create a new intern profile
   const internProfile = {
-    name: data.name,
+    firstname: data.firstname,
+    lastname: data.lastname,
     university: data.university,
-    interview_score: data.interview_score,
-    interview_feedback: data.interview_feedback,
-    evolution1_score: data.evolution1_score,
-    evolution1_feedback: data.evolution1_feedback,
-    evolution2_score: data.evolution2_score,
-    evolution2_feedback: data.evolution2_feedback,
     accomplishments: data.accomplishments,
     gpa: data.gpa,
-    project_details: data.project_details,
-    assigned_team: data.assigned_team,
     mentor: data.mentor,
-    cv_url: data.cv_url,
+    team: data.team,
+    interview_1_score: data.interview_1_score,
+    interview_2_score: data.interview_2_score,
+    evaluation_1_feedback:data.evaluation_1_feedback,
+    evaluation_2_feedback:data.evaluation_3_feedback,
+    cv_url: "N/A",
     status: "Pending", // Set initial status to Pending
   };
 
@@ -175,6 +173,7 @@ app.post("/api/interns", (req, res) => {
     data: internProfile,
   });
 });
+ 
 
 // Route to update an intern profile
 app.put("/api/interns/:name", (req, res) => {
@@ -246,6 +245,9 @@ app.patch("/api/interns/:name/status", (req, res) => {
     data: internProfile,
   });
 });
+
+
+
 
 // Start the server
 app.listen(port, () => {
