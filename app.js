@@ -15,7 +15,7 @@ db.connectToDatabase();
 
 // Login route to authenticate users and issue JWT token
 
-app.get("/users", async (req, res) => {
+app.get("/api/users", async (req, res) => {
   try {
     const query = "SELECT * FROM Users";
     const result = await sql.query(query);
