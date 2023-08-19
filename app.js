@@ -4,17 +4,51 @@ const port = 5000;
 const { authenticateUser, jwtSecret, users } = require("./auth");
 var cors = require("cors");
 const bcrypt = require("bcryptjs");
-const saltRounds = 10; // The number of salt rounds determines the complexity of the hashing
-
+const saltRounds = 10;
 app.use(cors());
-
-// Middleware to parse incoming JSON
 app.use(express.json());
+const sql = require("mssql");
+
+const config = {
+  server: "xternship-99x.cvlnrspsrlp1.eu-north-1.rds.amazonaws.com",
+  database: "InternX",
+  user: "admin",
+  password: "manameldura",
+  options: {
+    encrypt: true,
+    trustServerCertificate: true,
+    // Set to true for encrypted connection
+  },
+};
+
+async function connectToDatabase() {
+  try {
+    await sql.connect(config);
+    console.log("Connected to the database");
+  } catch (error) {
+    console.error("Error connecting to the database:", error);
+  }
+}
+
+connectToDatabase();
 
 // Login route to authenticate users and issue JWT token
+
+app.get("/users", async (req, res) => {
+  try {
+    const query = "SELECT * FROM Users";
+    const result = await sql.query(query);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// route to get all users from aws rds mssql database
 app.post("/api/login", (req, res) => {
-  const { username, password } = req.body;
-  const authenticatedUser = authenticateUser(username, password);
+  const { email, password } = req.body;
+  const authenticatedUser = authenticateUser(email, password);
 
   if (authenticatedUser) {
     res.json({
@@ -159,8 +193,8 @@ app.post("/api/interns", (req, res) => {
     team: data.team,
     interview_1_score: data.interview_1_score,
     interview_2_score: data.interview_2_score,
-    evaluation_1_feedback:data.evaluation_1_feedback,
-    evaluation_2_feedback:data.evaluation_3_feedback,
+    evaluation_1_feedback: data.evaluation_1_feedback,
+    evaluation_2_feedback: data.evaluation_3_feedback,
     cv_url: "N/A",
     status: "Pending", // Set initial status to Pending
   };
@@ -173,7 +207,6 @@ app.post("/api/interns", (req, res) => {
     data: internProfile,
   });
 });
- 
 
 // Route to update an intern profile
 app.put("/api/interns/:name", (req, res) => {
@@ -245,7 +278,6 @@ app.patch("/api/interns/:name/status", (req, res) => {
     data: internProfile,
   });
 });
-
 
 // Start the server
 app.listen(port, () => {
