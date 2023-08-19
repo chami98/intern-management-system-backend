@@ -8,7 +8,7 @@ const saltRounds = 10;
 app.use(cors());
 app.use(express.json());
 const sql = require("mssql");
-const db = require("./db"); 
+const db = require("./db");
 
 // Connect to the database
 db.connectToDatabase();
@@ -46,40 +46,61 @@ app.post("/api/login", (req, res) => {
 const accounts = [];
 
 // Route for creating a new account
-app.post("/api/register", (req, res) => {
-  const { firstname, lastname, email, password, role } = req.body;
+app.post("/api/register", async (req, res) => {
+  const { first_name, last_name, email, password, role } = req.body;
 
   // Validate data
-  if (!firstname || !lastname || !email || !password || !role) {
+  if (!first_name || !last_name || !email || !password || !role) {
     return res
       .status(400)
       .json({ message: "Please provide all required fields." });
   }
 
-  // Check if the email is already registered
-  const existingAccount = accounts.find((account) => account.email === email);
-  if (existingAccount) {
-    return res
-      .status(409)
-      .json({ message: "An account with this email already exists." });
+  try {
+    // Check if the email is already registered in the database
+    const emailCheckQuery = `SELECT * FROM Users WHERE email = '${email}'`;
+    const emailCheckResult = await sql.query(emailCheckQuery);
+    
+    if (emailCheckResult.recordset.length > 0) {
+      return res
+        .status(409)
+        .json({ message: "An account with this email already exists." });
+    }
+
+    const newAccount = {
+      first_name,
+      last_name,
+      email,
+      password: bcrypt.hashSync(password, saltRounds),
+      role_id:
+        role === "Intern"
+          ? 1
+          : role === "Mentor"
+          ? 2
+          : role === "Admin"
+          ? 3
+          : role === "Evaluator"
+          ? 4
+          : role === "Management"
+          ? 5
+          : 6,
+    };
+
+    // Save the new account in the database
+    const insertQuery = `
+      INSERT INTO Users (first_name, last_name, email, password, role_id)
+      VALUES ('${newAccount.first_name}', '${newAccount.last_name}', '${newAccount.email}', '${newAccount.password}', ${newAccount.role_id})
+    `;
+    const insertResult = await sql.query(insertQuery);
+
+    // Return the new account details as the response
+    res.status(201).json(newAccount);
+  } catch (error) {
+    console.error("Error creating new account:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
-
-  // Create a new account object
-  const newAccount = {
-    id: accounts.length + 1,
-    firstname,
-    lastname,
-    email,
-    password: bcrypt.hashSync(password, saltRounds),
-    role,
-  };
-
-  // Save the new account
-  accounts.push(newAccount);
-
-  // Return the new account details as the response
-  res.status(201).json(newAccount);
 });
+
 
 app.post("/invite", (req, res) => {
   const { email, role } = req.body;
