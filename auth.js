@@ -1,26 +1,15 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const sql = require("mssql");
-
 const saltRounds = 10;
 const jwtSecret = "xtenship";
-
-const config = {
-  server: "xternship-99x.cvlnrspsrlp1.eu-north-1.rds.amazonaws.com",
-  database: "InternX",
-  user: "admin",
-  password: "manameldura",
-  options: {
-    encrypt: true,
-    trustServerCertificate: true,
-  },
-};
+const db = require("./db");
 
 let users = [];
 
 async function connectToDatabase() {
   try {
-    await sql.connect(config);
+    await sql.connect(db.config);
     console.log("Connected to the database");
     await getUsers();
   } catch (error) {

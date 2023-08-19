@@ -8,29 +8,10 @@ const saltRounds = 10;
 app.use(cors());
 app.use(express.json());
 const sql = require("mssql");
+const db = require("./db"); 
 
-const config = {
-  server: "xternship-99x.cvlnrspsrlp1.eu-north-1.rds.amazonaws.com",
-  database: "InternX",
-  user: "admin",
-  password: "manameldura",
-  options: {
-    encrypt: true,
-    trustServerCertificate: true,
-    // Set to true for encrypted connection
-  },
-};
-
-async function connectToDatabase() {
-  try {
-    await sql.connect(config);
-    console.log("Connected to the database");
-  } catch (error) {
-    console.error("Error connecting to the database:", error);
-  }
-}
-
-connectToDatabase();
+// Connect to the database
+db.connectToDatabase();
 
 // Login route to authenticate users and issue JWT token
 
