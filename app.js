@@ -102,41 +102,9 @@ app.post("/api/register", async (req, res) => {
 });
 
 
-app.post("/invite", (req, res) => {
-  const { email, role } = req.body;
-
-  // Validate data
-  if (!email || !role) {
-    return res
-      .status(400)
-      .json({ message: "Please provide both email and role." });
-  }
-
-  // Check if the role is valid (Admin, Management, Intern, etc.)
-  const validRoles = [
-    "Admin",
-    "Management",
-    "Intern",
-    "Evaluator" /* Add more roles as needed */,
-  ];
-  if (!validRoles.includes(role)) {
-    return res.status(400).json({ message: "Invalid role provided." });
-  }
-
-  // Send invitation email
-  sendInvitationEmail(email, role)
-    .then(() => {
-      res.json({ message: "Invitation sent successfully." });
-    })
-    .catch((error) => {
-      console.error("Error sending invitation email:", error);
-      res.status(500).json({ message: "Error sending invitation email." });
-    });
-});
-
 // Route for upgrading/downgrading permissions
-app.put("/api/users/:id/role", (req, res) => {
-  const { id } = req.params;
+app.put("/api/users/:email/role", (req, res) => {
+  const { email } = req.params;
   const { role } = req.body;
 
   // Validate data
@@ -155,7 +123,7 @@ app.put("/api/users/:id/role", (req, res) => {
     return res.status(400).json({ message: "Invalid role provided." });
   }
 
-  // Find the user by ID in the database (Database link karanna)
+  // Find the user by ID in the mssql
   const user = users.find((user) => user.id === parseInt(id));
   if (!user) {
     return res.status(404).json({ message: "User not found." });
@@ -279,6 +247,38 @@ app.patch("/api/interns/:name/status", (req, res) => {
     message: "Intern profile status updated successfully",
     data: internProfile,
   });
+});
+
+app.post("/invite", (req, res) => {
+  const { email, role } = req.body;
+
+  // Validate data
+  if (!email || !role) {
+    return res
+      .status(400)
+      .json({ message: "Please provide both email and role." });
+  }
+
+  // Check if the role is valid (Admin, Management, Intern, etc.)
+  const validRoles = [
+    "Admin",
+    "Management",
+    "Intern",
+    "Evaluator" /* Add more roles as needed */,
+  ];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ message: "Invalid role provided." });
+  }
+
+  // Send invitation email
+  sendInvitationEmail(email, role)
+    .then(() => {
+      res.json({ message: "Invitation sent successfully." });
+    })
+    .catch((error) => {
+      console.error("Error sending invitation email:", error);
+      res.status(500).json({ message: "Error sending invitation email." });
+    });
 });
 
 // Start the server
