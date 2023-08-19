@@ -30,19 +30,31 @@ async function getUsers() {
   }
 }
 
-function authenticateUser(email, password) {
-  const user = users.find((u) => u.email === email);
-  console.log(user);
-  if (!user) return null;
+async function authenticateUser(email, password) {
+  try {
+    await sql.connect(db.config);
 
-  if (bcrypt.compareSync(password, user.password)) {
-    const token = jwt.sign({ id: user.id, role: user.role }, jwtSecret, {
-      expiresIn: "1h",
-    });
-    return { user: { ...user, password: undefined }, token };
+    const query = `SELECT * FROM Users WHERE email = '${email}'`;
+    const result = await sql.query(query);
+    const user = result.recordset[0];
+
+    if (!user) return null;
+
+    console.log("Retrieved user:", user);
+
+    if (bcrypt.compareSync(password, user.password)) {
+      const token = jwt.sign({ id: user.id, role: user.role_id }, jwtSecret, {
+        expiresIn: "1h",
+      });
+      console.log("Generated token:", token);
+      return { user: { ...user, password: undefined }, token };
+    }
+    return null;
+  } catch (error) {
+    console.error("Error during authentication:", error);
+    return null;
   }
-
-  return null;
 }
+
 
 module.exports = { authenticateUser, jwtSecret, users };

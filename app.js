@@ -26,24 +26,24 @@ app.get("/users", async (req, res) => {
   }
 });
 
-// route to get all users from aws rds mssql database
-app.post("/api/login", (req, res) => {
+// route to get all users from aws rds mssql database 
+app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
-  const authenticatedUser = authenticateUser(email, password);
+
+  const authenticatedUser = await authenticateUser(email, password);
 
   if (authenticatedUser) {
+    console.log("Authenticated user:", authenticatedUser);
     res.json({
       success: true,
       user: authenticatedUser.user,
       token: authenticatedUser.token,
     });
   } else {
+    console.log("Authentication failed for:", email);
     res.status(401).json({ success: false, message: "Invalid credentials." });
   }
 });
-
-// In-memory array to store accounts
-const accounts = [];
 
 // Route for creating a new account
 app.post("/api/register", async (req, res) => {
