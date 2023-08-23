@@ -13,11 +13,10 @@ const db = require("./db");
 // Connect to the database
 db.connectToDatabase();
 
-// Login route to authenticate users and issue JWT token
-
-app.get("/api/users", async (req, res) => {
+// route to get all users from aws rds mssql database
+app.get("/api/interns", async (req, res) => {
   try {
-    const query = "SELECT * FROM Users";
+    const query = "SELECT * FROM Users where role_id = 1";
     const result = await sql.query(query);
     res.json(result.recordset);
   } catch (error) {
@@ -26,7 +25,8 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
-// route to get all users from aws rds mssql database 
+
+// Login route to authenticate users and issue JWT token
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -60,7 +60,7 @@ app.post("/api/register", async (req, res) => {
     // Check if the email is already registered in the database
     const emailCheckQuery = `SELECT * FROM Users WHERE email = '${email}'`;
     const emailCheckResult = await sql.query(emailCheckQuery);
-    
+
     if (emailCheckResult.recordset.length > 0) {
       return res
         .status(409)
@@ -100,7 +100,6 @@ app.post("/api/register", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 // Route for upgrading/downgrading permissions
 app.put("/api/users/:email/role", (req, res) => {
