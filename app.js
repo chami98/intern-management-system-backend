@@ -25,6 +25,18 @@ app.get("/api/interns", async (req, res) => {
   }
 });
 
+// route to get user by id from aws rds mssql database
+app.get("/api/interns/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const query = `SELECT * FROM Users WHERE id = ${id}`;
+    const result = await sql.query(query);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 // Login route to authenticate users and issue JWT token
 app.post("/api/login", async (req, res) => {
