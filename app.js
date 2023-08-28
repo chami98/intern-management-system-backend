@@ -38,85 +38,55 @@ app.get("/api/interns/:id", async (req, res) => {
   }
 });
 
-// Route to create an intern profile
-// app.post("/api/interns", (req, res) => {
-//   const data = req.body;
-
-//   // Check if a record with the same name already exists
-//   const existingProfile = internProfiles.find(
-//     (profile) => profile.firstname === data.firstname
-//   );
-//   if (existingProfile) {
-//     return res
-//       .status(409)
-//       .json({ message: "An intern profile with the same name already exists" });
-//   }
-
-//   // Create a new intern profile
-//   const internProfile = {
-//     firstname: data.firstname,
-//     lastname: data.lastname,
-//     university: data.university,
-//     accomplishments: data.accomplishments,
-//     gpa: data.gpa,
-//     mentor: data.mentor,
-//     team: data.team,
-//     interview_1_score: data.interview_1_score,
-//     interview_2_score: data.interview_2_score,
-//     evaluation_1_feedback: data.evaluation_1_feedback,
-//     evaluation_2_feedback: data.evaluation_3_feedback,
-//     cv_url: "N/A",
-//     status: "Pending", // Set initial status to Pending
-//   };
-
-
-//   return res.status(201).json({
-//     message: "Intern profile created successfully",
-//     data: internProfile,
-//   });
-// });
-
 // Route to create an intern profile for a specific user
 app.post("/api/interns/:id", async (req, res) => {
-  const id = req.params.id;
+  const intern_id = req.params.id;
   const data = req.body;
 
   try {
+    // Check if a record with the same intern ID already exists
+    const selectQuery = `SELECT COUNT(*) as count FROM Interns WHERE intern_id = ${intern_id}`;
+    const selectResult = await sql.query(selectQuery);
+
+    if (selectResult.recordset[0].count > 0) {
+      return res
+        .status(400)
+        .json({ error: "Intern profile with the same ID already exists" });
+    }
     // Create a new intern profile object
     const internProfile = {
-      firstname: data.firstname,
-      lastname: data.lastname,
+      intern_id: parseInt(intern_id),
       university: data.university,
       accomplishments: data.accomplishments,
       gpa: data.gpa,
-      mentor: data.mentor,
-      team: data.team,
-      interview_1_score: data.interview_1_score,
-      interview_2_score: data.interview_2_score,
-      evaluation_1_feedback: data.evaluation_1_feedback,
-      evaluation_2_feedback: data.evaluation_2_feedback,
+      mentor_id: parseInt(data.mentor_id),
+      assigned_team: data.assigned_team,
+      interview1_score: data.interview1_score,
+      interview2_score: data.interview2_score,
+      evaluation1_feedback: data.evaluation1_feedback,
+      evaluation2_feedback: data.evaluation2_feedback,
       cv_url: "N/A",
       status: "Pending",
     };
-
-    // Insert the intern profile into the database with the provided internId
     const insertQuery = `
-      INSERT INTO InternProfiles (
-        id, university, accomplishments, gpa,
-        mentor, team, interview_1_score, interview_2_score,
-        evaluation_1_feedback, evaluation_2_feedback, cv_url, status
-      )
-      VALUES (
-        ${id},'${internProfile.university}', '${internProfile.accomplishments}',
-        ${internProfile.gpa}, '${internProfile.mentor}', '${internProfile.team}',
-        ${internProfile.interview_1_score}, ${internProfile.interview_2_score},
-        '${internProfile.evaluation_1_feedback}', '${internProfile.evaluation_2_feedback}',
-        '${internProfile.cv_url}', '${internProfile.status}'
-      )
-    `;
+    INSERT INTO Interns (
+      university, accomplishments, gpa,
+      mentor_id, assigned_team, interview1_score, interview2_score,
+      evaluation1_feedback, evaluation2_feedback, cv_url, status, intern_id
+    )
+    VALUES (
+      '${internProfile.university}', '${internProfile.accomplishments}',
+      ${internProfile.gpa}, ${internProfile.mentor_id}, '${internProfile.assigned_team}',
+      ${internProfile.interview1_score}, ${internProfile.interview2_score},
+      '${internProfile.evaluation1_feedback}', '${internProfile.evaluation2_feedback}',
+      '${internProfile.cv_url}', '${internProfile.status}', ${internProfile.intern_id}
+    )
+  `;
 
-    // Execute the insert query
+    console.log("Insert Query:", insertQuery);
     const insertResult = await sql.query(insertQuery);
+
+    console.log(internProfile);
 
     // Return the success response
     res.status(201).json({
@@ -128,9 +98,6 @@ app.post("/api/interns/:id", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
-
-
 
 // Login route to authenticate users and issue JWT token
 app.post("/api/login", async (req, res) => {
@@ -242,8 +209,6 @@ app.put("/api/users/:email/role", (req, res) => {
 });
 
 const internProfiles = [];
-
-
 
 // Route to update an intern profile
 app.put("/api/interns/:name", (req, res) => {
