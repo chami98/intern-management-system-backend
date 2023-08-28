@@ -13,10 +13,22 @@ const db = require("./db");
 // Connect to the database
 db.connectToDatabase();
 
-// route to get all users from aws rds mssql database
+// route to get all interns from aws rds mssql database
 app.get("/api/interns", async (req, res) => {
   try {
-    const query = "SELECT * FROM Users where role_id = 1";
+    const query = "SELECT id, first_name, last_name, email, role_id FROM Users WHERE role_id = 1";
+    const result = await sql.query(query);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// route to get all mentors from aws rds mssql database
+app.get("/api/mentors", async (req, res) => {
+  try {
+    const query = "SELECT id, first_name, last_name, email, role_id FROM Users WHERE role_id = 3";
     const result = await sql.query(query);
     res.json(result.recordset);
   } catch (error) {
@@ -29,7 +41,7 @@ app.get("/api/interns", async (req, res) => {
 app.get("/api/interns/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const query = `SELECT * FROM Users WHERE id = ${id}`;
+    const query = `SELECT id, first_name, last_name, email, role_id  FROM Users WHERE id = ${id}`;
     const result = await sql.query(query);
     res.json(result.recordset);
   } catch (error) {
@@ -148,9 +160,9 @@ app.post("/api/register", async (req, res) => {
       role_id:
         role === "Intern"
           ? 1
-          : role === "Mentor"
-          ? 2
           : role === "Admin"
+          ? 2
+          : role === "Mentor"
           ? 3
           : role === "Evaluator"
           ? 4
