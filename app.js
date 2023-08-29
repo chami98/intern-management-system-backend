@@ -16,7 +16,31 @@ db.connectToDatabase();
 // route to get all interns from aws rds mssql database
 app.get("/api/interns", async (req, res) => {
   try {
-    const query = "SELECT id, first_name, last_name, email, role_id FROM Users WHERE role_id = 1";
+    const query =
+      "SELECT id, first_name, last_name, email, role_id FROM Users WHERE role_id = 1";
+    const result = await sql.query(query);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+app.get("/api/internProfiles", async (req, res) => {
+  try {
+    const query =
+      "SELECT first_name, last_name, email,  university, interview1_score, evaluation1_feedback, interview2_score, evaluation2_feedback, accomplishments, gpa, assigned_team, mentor_id, cv_url FROM Users , Interns WHERE role_id = 1 and Users.id = Interns.user_id";
+    const result = await sql.query(query);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+app.get("/api/interns", async (req, res) => {
+  const { completed } = req.query;
+  try {
+    const query =
+      "SELECT id, first_name, last_name, email, role_id FROM Users WHERE role_id = 1";
     const result = await sql.query(query);
     res.json(result.recordset);
   } catch (error) {
@@ -28,7 +52,8 @@ app.get("/api/interns", async (req, res) => {
 // route to get all mentors from aws rds mssql database
 app.get("/api/mentors", async (req, res) => {
   try {
-    const query = "SELECT id, first_name, last_name, email, role_id FROM Users WHERE role_id = 3";
+    const query =
+      "SELECT id, first_name, last_name, email, role_id FROM Users WHERE role_id = 3";
     const result = await sql.query(query);
     res.json(result.recordset);
   } catch (error) {
@@ -37,7 +62,7 @@ app.get("/api/mentors", async (req, res) => {
   }
 });
 
-// route to get user by id from aws rds mssql database
+// route to get intern by id from aws rds mssql database
 app.get("/api/interns/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -52,12 +77,12 @@ app.get("/api/interns/:id", async (req, res) => {
 
 // Route to create an intern profile for a specific user
 app.post("/api/interns/:id", async (req, res) => {
-  const intern_id = req.params.id;
+  const user_id = req.params.id;
   const data = req.body;
 
   try {
     // Check if a record with the same intern ID already exists
-    const selectQuery = `SELECT COUNT(*) as count FROM Interns WHERE intern_id = ${intern_id}`;
+    const selectQuery = `SELECT COUNT(*) as count FROM Interns WHERE user_id = ${user_id}`;
     const selectResult = await sql.query(selectQuery);
 
     if (selectResult.recordset[0].count > 0) {
@@ -67,11 +92,11 @@ app.post("/api/interns/:id", async (req, res) => {
     }
     // Create a new intern profile object
     const internProfile = {
-      intern_id: parseInt(intern_id),
+      user_id: user_id,
       university: data.university,
       accomplishments: data.accomplishments,
       gpa: data.gpa,
-      mentor_id: parseInt(data.mentor_id),
+      mentor_id: data.mentor_id,
       assigned_team: data.assigned_team,
       interview1_score: data.interview1_score,
       interview2_score: data.interview2_score,
@@ -80,22 +105,24 @@ app.post("/api/interns/:id", async (req, res) => {
       cv_url: "N/A",
       status: "Pending",
     };
+
+    console.log(internProfile);
+
     const insertQuery = `
     INSERT INTO Interns (
       university, accomplishments, gpa,
       mentor_id, assigned_team, interview1_score, interview2_score,
-      evaluation1_feedback, evaluation2_feedback, cv_url, status, intern_id
+      evaluation1_feedback, evaluation2_feedback, cv_url, status, user_id
     )
     VALUES (
       '${internProfile.university}', '${internProfile.accomplishments}',
       ${internProfile.gpa}, ${internProfile.mentor_id}, '${internProfile.assigned_team}',
       ${internProfile.interview1_score}, ${internProfile.interview2_score},
       '${internProfile.evaluation1_feedback}', '${internProfile.evaluation2_feedback}',
-      '${internProfile.cv_url}', '${internProfile.status}', ${internProfile.intern_id}
+      '${internProfile.cv_url}', '${internProfile.status}', ${internProfile.user_id}
     )
   `;
 
-    console.log("Insert Query:", insertQuery);
     const insertResult = await sql.query(insertQuery);
 
     console.log(internProfile);
