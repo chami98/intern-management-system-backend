@@ -25,6 +25,37 @@ app.get("/api/interns", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+// route to get all users from aws rds mssql database with optional query param
+app.get("/api/users", async (req, res) => {
+  const { user } = req.query;
+  let role_id = undefined;
+
+  if (user === "intern") {
+    role_id = 1;
+  } else if (user === "admin") {
+    role_id = 2;
+  } else if (user === "mentor") {
+    role_id = 3;
+  } else if (user === "evaluator") {
+    role_id = 4;
+  } else if (user === "management") {
+    role_id = 5;
+  }
+
+  try {
+    let query = `SELECT id, first_name, last_name, email, role_id FROM Users`;
+    if (role_id) {
+      query += ` WHERE role_id = ${role_id}`;
+      console.log(query);
+    }
+    const result = await sql.query(query);
+    res.json(result.recordset);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 app.get("/api/internProfiles", async (req, res) => {
   try {
     const query =
