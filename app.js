@@ -9,9 +9,50 @@ app.use(cors());
 app.use(express.json());
 const sql = require("mssql");
 const db = require("./db");
+const path = require("path");
+
+// Initialize AWS S3
+const {
+  S3
+} = require("@aws-sdk/client-s3");
+const multer = require("multer");
+const multerS3 = require("multer-s3");
 
 // Connect to the database
 db.connectToDatabase();
+
+// Initialize AWS S3
+const s3 = new S3({
+  accessKeyId: "AKIAXPCGK73RACPN2YP4",
+  secretAccessKey: "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",
+  region: "eu-north-1",
+});
+
+// Multer configuration for handling file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // Files will be uploaded to the "uploads" folder
+  },
+  filename: (req, file, cb) => {
+    const fileName = Date.now() + path.extname(file.originalname);
+    cb(null, fileName); // Generate a unique filename for the uploaded file
+  },
+});
+
+const upload = multer({ storage });
+
+// Serve the uploaded files statically
+app.use("/uploads", express.static("uploads"));
+
+// Define a route for file upload
+app.post("/upload", upload.single("file"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).send("No file uploaded.");
+  }
+
+  // Send back the uploaded file's name
+  res.send(`File "${req.file.originalname}" uploaded successfully.`);
+});
 
 // route to get all users from aws rds mssql database with optional query param
 app.get("/api/users", async (req, res) => {
