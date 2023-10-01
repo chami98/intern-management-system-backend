@@ -9,51 +9,52 @@ app.use(cors());
 app.use(express.json());
 const sql = require("mssql");
 const db = require("./db");
-const path = require("path");
+const { Upload } = require("@aws-sdk/lib-storage");
+const multer = require('multer');
+const { S3Client } = require("@aws-sdk/client-s3");
+require('dotenv').config(); 
 
-// Initialize AWS S3
-const {
-  S3
-} = require("@aws-sdk/client-s3");
-const multer = require("multer");
-const multerS3 = require("multer-s3");
 
-// Connect to the database
 db.connectToDatabase();
 
-// Initialize AWS S3
-const s3 = new S3({
-  accessKeyId: "AKIAXPCGK73RACPN2YP4",
-  secretAccessKey: "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",
-  region: "eu-north-1",
-});
-
-// Multer configuration for handling file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Files will be uploaded to the "uploads" folder
-  },
-  filename: (req, file, cb) => {
-    const fileName = Date.now() + path.extname(file.originalname);
-    cb(null, fileName); // Generate a unique filename for the uploaded file
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
 
+// Configure multer to use S3
+const storage = multer.memoryStorage(); // Store the file in memory
 const upload = multer({ storage });
 
-// Serve the uploaded files statically
-app.use("/uploads", express.static("uploads"));
+// Route to upload a file to S3
+app.post("/api/upload", upload.single("file"), async (req, res) => {
+  try {
+    const file = req.file;
 
-// Define a route for file upload
-app.post("/upload", upload.single("file"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).send("No file uploaded.");
+    // Create an Upload object with the file stream
+    const uploader = new Upload({
+      client: s3Client,
+      params: {
+        Bucket: process.env.AWS_BUCKET, // Replace with your bucket name
+        Key: Date.now().toString()+ '.pdf', // Specify the S3 object key (filename)
+        Body: file.buffer,
+        ACL: "public-read", // Set the ACL as needed
+      },
+    });
+
+    // Execute the upload
+    const uploadResponse = await uploader.done();
+    // Generate and return the S3 object URL
+    const fileUrl = `https://${uploader.params.Bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${uploader.params.Key}`;
+    res.json({ fileUrl });
+  } catch (error) {
+    console.error("Error uploading file to S3:", error);
+    res.status(500).json({ error: "Error uploading file to S3" });
   }
-
-  // Send back the uploaded file's name
-  res.send(`File "${req.file.originalname}" uploaded successfully.`);
 });
-
 // route to get all users from aws rds mssql database with optional query param
 app.get("/api/users", async (req, res) => {
   const { user } = req.query;
