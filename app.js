@@ -111,15 +111,25 @@ app.get("/api/users", async (req, res) => {
 
 app.get("/api/internProfiles", async (req, res) => {
   try {
-    const query =
-      "SELECT first_name, last_name, email,  university, interview1_score, evaluation1_feedback, interview2_score, evaluation2_feedback, accomplishments, gpa, assigned_team, mentor_id, cv_url FROM Users , Interns WHERE role_id = 1 and Users.id = Interns.user_id";
-    const result = await sql.query(query);
-    res.json(result.recordset);
+    const query = `
+    SELECT id, first_name, last_name, email, role_id FROM Users WHERE role_id = 5
+    `;
+
+    // Execute the SQL query to retrieve intern profiles
+    sql.query(connectionString, query, (err, results) => {
+      if (err) {
+        console.error("Error fetching intern profiles:", err);
+        res.status(500).json({ error: "Internal server error" });
+      } else {
+        res.json(results);
+      }
+    });
   } catch (error) {
-    console.error("Error fetching users:", error);
+    console.error("Error in the try-catch block:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 // route to get intern by id from aws rds mssql database
 app.get("/api/interns/:id", async (req, res) => {
