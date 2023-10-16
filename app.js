@@ -190,67 +190,93 @@ app.get("/api/interns/:id", async (req, res) => {
 });
 
 // Route to create an intern profile for a specific user
+
 app.post("/api/interns/:id", async (req, res) => {
   const user_id = req.params.id;
   const data = req.body;
 
+  const internProfile = {
+    user_id: user_id,
+    university: data.university,
+    accomplishments: data.accomplishments,
+    gpa: data.gpa,
+    mentor_id: data.mentor_id,
+    assigned_team: data.assigned_team,
+    interview_score: data.interview_score,
+    interview_feedback:data.interview_feedback,
+    evaluation1_score: data.evaluation1_score,
+    evaluation2_score: data.evaluation2_score,
+    evaluation1_feedback: data.evaluation1_feedback,
+    evaluation2_feedback: data.evaluation2_feedback,
+    cv_url: "N/A",
+    status: "Pending",
+    project_details: data.project_details
+  };
+
   try {
     // Check if a record with the same intern ID already exists
-    const selectQuery = `SELECT COUNT(*) as count FROM Interns WHERE user_id = ${user_id}`;
-    const selectResult = await sql.query(selectQuery);
+    const selectQuery = "SELECT COUNT(*) as count FROM Interns WHERE user_id = ?";
+    
+    sql.query(connectionString, selectQuery, [user_id], (err, selectResult) => {
+      if (err) {
+        console.error("Error checking for an existing intern profile:", err);
+        return res.status(500).json({ error: "Internal server error" });
+      }
 
-    if (selectResult.recordset[0].count > 0) {
-      return res
-        .status(400)
-        .json({ error: "Intern profile with the same ID already exists" });
-    }
-    // Create a new intern profile object
-    const internProfile = {
-      user_id: user_id,
-      university: data.university,
-      accomplishments: data.accomplishments,
-      gpa: data.gpa,
-      mentor_id: data.mentor_id,
-      assigned_team: data.assigned_team,
-      interview1_score: data.interview1_score,
-      interview2_score: data.interview2_score,
-      evaluation1_feedback: data.evaluation1_feedback,
-      evaluation2_feedback: data.evaluation2_feedback,
-      cv_url: "N/A",
-      status: "Pending",
-    };
+      // if (selectResult[0].count > 0) {
+      //   return res
+      //     .status(400)
+      //     .json({ error: "Intern profile with the same ID already exists" });
+      // }
 
-    console.log(internProfile);
+      // Insert a new intern profile
+      const insertQuery = `
+        INSERT INTO Interns (
+          university, accomplishments, gpa, mentor_id, assigned_team, interview_score, interview_feedback,
+          evaluation1_score, evaluation2_score, evaluation1_feedback,
+          evaluation2_feedback, cv_url, status, user_id , project_details
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
 
-    const insertQuery = `
-    INSERT INTO Interns (
-      university, accomplishments, gpa,
-      mentor_id, assigned_team, interview1_score, interview2_score,
-      evaluation1_feedback, evaluation2_feedback, cv_url, status, user_id
-    )
-    VALUES (
-      '${internProfile.university}', '${internProfile.accomplishments}',
-      ${internProfile.gpa}, ${internProfile.mentor_id}, '${internProfile.assigned_team}',
-      ${internProfile.interview1_score}, ${internProfile.interview2_score},
-      '${internProfile.evaluation1_feedback}', '${internProfile.evaluation2_feedback}',
-      '${internProfile.cv_url}', '${internProfile.status}', ${internProfile.user_id}
-    )
-  `;
+      sql.query(connectionString, insertQuery, [
+        internProfile.university,
+        internProfile.accomplishments,
+        internProfile.gpa,
+        internProfile.mentor_id,
+        internProfile.assigned_team,
+        internProfile.interview_score,
+        internProfile.interview_feedback,
+        internProfile.evaluation1_score,
+        internProfile.evaluation2_score,
+        internProfile.evaluation1_feedback,
+        internProfile.evaluation2_feedback,
+        internProfile.cv_url,
+        internProfile.status,
+        internProfile.user_id,
+        internProfile.project_details
+      ], (err) => {
+        if (err) {
+          console.error("Error creating intern profile:", err);
+          return res.status(500).json({ error: "Internal server error" });
+        }
 
-    const insertResult = await sql.query(insertQuery);
-
-    console.log(internProfile);
-
-    // Return the success response
-    res.status(201).json({
-      message: "Intern profile created successfully",
-      data: internProfile,
+        // Return the success response
+        res.status(201).json({
+          message: "Intern profile created successfully",
+          data: internProfile,
+        });
+      });
     });
   } catch (error) {
     console.error("Error creating intern profile:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+
+
+
 
 // Login route to authenticate users and issue JWT token
 app.post("/api/login", async (req, res) => {
