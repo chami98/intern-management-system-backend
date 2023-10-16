@@ -151,14 +151,47 @@ app.get("/api/internProfiles", async (req, res) => {
 app.get("/api/interns/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const query = `SELECT id, first_name, last_name, email, role_id  FROM Users WHERE id = ${id}`;
-    const result = await sql.query(query);
-    res.json(result.recordset);
+    const query = `
+      SELECT
+        U.id,
+        U.first_name,
+        U.last_name,
+        U.email,
+        U.role_id,
+        I.university,
+        I.interview1_score,
+        I.evaluation1_feedback,
+        I.interview2_score,
+        I.evaluation2_feedback,
+        I.accomplishments,
+        I.gpa,
+        I.assigned_team,
+        I.mentor_id,
+        I.cv_url
+      FROM Users AS U
+      LEFT JOIN Interns AS I ON U.id = I.user_id
+      WHERE U.id = ${id}
+    `;
+
+    // Execute the SQL query to retrieve intern information by ID
+    sql.query(connectionString, query, (err, results) => {
+      if (err) {
+        console.error("Error fetching intern:", err);
+        res.status(500).json({ error: "Internal server error" });
+      } else {
+        if (results.length > 0) {
+          res.json(results[0]);
+        } else {
+          res.status(404).json({ error: "Intern not found" });
+        }
+      }
+    });
   } catch (error) {
-    console.error("Error fetching users:", error);
+    console.error("Error in the try-catch block:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 // Route to create an intern profile for a specific user
 app.post("/api/interns/:id", async (req, res) => {
