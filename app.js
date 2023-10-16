@@ -10,10 +10,9 @@ app.use(express.json());
 // const sql = require("mssql");
 const db = require("./db");
 const { Upload } = require("@aws-sdk/lib-storage");
-const multer = require('multer');
+const multer = require("multer");
 const { S3Client } = require("@aws-sdk/client-s3");
-require('dotenv').config(); 
-
+require("dotenv").config();
 
 const sql = require("msnodesqlv8");
 
@@ -53,7 +52,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
       client: s3Client,
       params: {
         Bucket: process.env.AWS_BUCKET, // Replace with your bucket name
-        Key: Date.now().toString()+ '.pdf', // Specify the S3 object key (filename)
+        Key: Date.now().toString() + ".pdf", // Specify the S3 object key (filename)
         Body: file.buffer,
         ACL: "public-read", // Set the ACL as needed
       },
@@ -108,7 +107,6 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
-
 app.get("/api/internProfiles", async (req, res) => {
   try {
     const query = `
@@ -145,7 +143,6 @@ app.get("/api/internProfiles", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 // route to get intern by id from aws rds mssql database
 app.get("/api/interns/:id", async (req, res) => {
@@ -191,7 +188,6 @@ app.get("/api/interns/:id", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 // Route to create an intern profile for a specific user
 app.post("/api/interns/:id", async (req, res) => {
@@ -287,44 +283,67 @@ app.post("/api/register", async (req, res) => {
   }
 
   try {
-    // Check if the email is already registered in the database
-    const emailCheckQuery = `SELECT * FROM Users WHERE email = '${email}'`;
-    const emailCheckResult = await sql.query(emailCheckQuery);
+    console.log(first_name, last_name, email, password, role);
+    // Create a new database connection
+    sql.open(connectionString, (err, conn) => {
+      if (err) {
+        console.error("Error opening database connection:", err);
+        return res.status(500).json({ error: "Internal server error" });
+      }
 
-    if (emailCheckResult.recordset.length > 0) {
-      return res
-        .status(409)
-        .json({ message: "An account with this email already exists." });
-    }
+      // Check if the email is already registered in the database
+      const emailCheckQuery = `SELECT * FROM Users WHERE email = '${email}'`;
+      conn.query(emailCheckQuery, (err, emailCheckResult) => {
+        if (err) {
+          conn.close();
+          console.error("Error checking email:", err);
+          return res.status(500).json({ error: "Internal server error" });
+        }
 
-    const newAccount = {
-      first_name,
-      last_name,
-      email,
-      password: bcrypt.hashSync(password, saltRounds),
-      role_id:
-        role === "Intern"
-          ? 1
-          : role === "Admin"
-          ? 2
-          : role === "Mentor"
-          ? 3
-          : role === "Evaluator"
-          ? 4
-          : role === "Management"
-          ? 5
-          : 6,
-    };
+        if (emailCheckResult.length > 0) {
+          conn.close();
+          return res
+            .status(409)
+            .json({ message: "An account with this email already exists." });
+        }
 
-    // Save the new account in the database
-    const insertQuery = `
-      INSERT INTO Users (first_name, last_name, email, password, role_id)
-      VALUES ('${newAccount.first_name}', '${newAccount.last_name}', '${newAccount.email}', '${newAccount.password}', ${newAccount.role_id})
-    `;
-    const insertResult = await sql.query(insertQuery);
+        const newAccount = {
+          first_name,
+          last_name,
+          email,
+          password: bcrypt.hashSync(password, saltRounds),
+          role_id:
+            role === "Intern"
+              ? 1
+              : role === "Admin"
+              ? 2
+              : role === "Mentor"
+              ? 3
+              : role === "Evaluator"
+              ? 4
+              : role === "Management"
+              ? 5
+              : 6,
+        };
 
-    // Return the new account details as the response
-    res.status(201).json(newAccount);
+        // Save the new account in the database
+        const insertQuery = `
+          INSERT INTO Users (first_name, last_name, email, password, role_id)
+          VALUES ('${newAccount.first_name}', '${newAccount.last_name}', '${newAccount.email}', '${newAccount.password}', ${newAccount.role_id})
+        `;
+
+        conn.query(insertQuery, (err, insertResult) => {
+          conn.close();
+          if (err) {
+            console.error("Error creating new account:", err);
+            return res.status(500).json({ error: "Internal server error" });
+          }
+
+          // Return the new account details as the response
+          res.status(201).json(newAccount);
+        });
+      });
+    });
   } catch (error) {
     console.error("Error creating new account:", error);
     res.status(500).json({ error: "Internal server error" });
