@@ -112,7 +112,23 @@ app.get("/api/users", async (req, res) => {
 app.get("/api/internProfiles", async (req, res) => {
   try {
     const query = `
-    SELECT id, first_name, last_name, email, role_id FROM Users WHERE role_id = 5
+      SELECT
+        U.first_name,
+        U.last_name,
+        U.email,
+        I.university,
+        I.interview1_score,
+        I.evaluation1_feedback,
+        I.interview2_score,
+        I.evaluation2_feedback,
+        I.accomplishments,
+        I.gpa,
+        I.assigned_team,
+        I.mentor_id,
+        I.cv_url
+      FROM Users AS U, Interns AS I
+      WHERE U.id = I.user_id
+      AND U.role_id = 5
     `;
 
     // Execute the SQL query to retrieve intern profiles
