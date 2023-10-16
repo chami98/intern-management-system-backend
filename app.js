@@ -7,7 +7,7 @@ const bcrypt = require("bcryptjs");
 const saltRounds = 10;
 app.use(cors());
 app.use(express.json());
-const sql = require("mssql");
+// const sql = require("mssql");
 const db = require("./db");
 const { Upload } = require("@aws-sdk/lib-storage");
 const multer = require('multer');
@@ -15,7 +15,21 @@ const { S3Client } = require("@aws-sdk/client-s3");
 require('dotenv').config(); 
 
 
-db.connectToDatabase();
+const sql = require("msnodesqlv8");
+
+// Create a connection string for your local MSSQL Server.
+// Replace the placeholders with your server name and database name.
+// const connectionString = "Server=localhost\\SQLExpress;Database=InternX;Trusted_Connection=Yes;Driver={SQL Server Native Client 11.0}";
+const connectionString = "DSN=internx;Trusted_Connection=Yes;";
+
+// Connect to the MSSQL Server database
+sql.open(connectionString, (err, conn) => {
+  if (err) {
+    console.error("Error connecting to the database:", err);
+  } else {
+    console.log("Connected to MSSQL Server database");
+  }
+});
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
@@ -73,18 +87,27 @@ app.get("/api/users", async (req, res) => {
   }
 
   try {
-    let query = `SELECT id, first_name, last_name, email, role_id FROM Users`;
+    let query = "SELECT id, first_name, last_name, email, role_id FROM Users";
     if (role_id) {
       query += ` WHERE role_id = ${role_id}`;
-      console.log(query);
     }
-    const result = await sql.query(query);
-    res.json(result.recordset);
+    console.log(query);
+
+    // Execute the SQL query to retrieve user data
+    sql.query(connectionString, query, (err, results) => {
+      if (err) {
+        console.error("Error fetching users:", err);
+        res.status(500).json({ error: "Internal server error" });
+      } else {
+        res.json(results);
+      }
+    });
   } catch (error) {
     console.error("Error fetching users:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 app.get("/api/internProfiles", async (req, res) => {
   try {
