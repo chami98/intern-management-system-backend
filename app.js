@@ -282,20 +282,26 @@ app.post("/api/interns/:id", async (req, res) => {
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const authenticatedUser = await authenticateUser(email, password);
+  try {
+    const authenticatedUser = await authenticateUser(email, password);
 
-  if (authenticatedUser) {
-    console.log("Authenticated user:", authenticatedUser);
-    res.json({
-      success: true,
-      user: authenticatedUser.user,
-      token: authenticatedUser.token,
-    });
-  } else {
-    console.log("Authentication failed for:", email);
-    res.status(401).json({ success: false, message: "Invalid credentials." });
+    if (authenticatedUser.success) {
+      console.log("Authenticated user:", authenticatedUser);
+      res.json({
+        success: true,
+        user: authenticatedUser.user,
+        token: authenticatedUser.token,
+      });
+    } else {
+      console.log("Authentication failed for:", email);
+      res.status(401).json({ success: false, message: "Invalid credentials." });
+    }
+  } catch (error) {
+    console.error("Error during authentication:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
+
 
 // Route for creating a new account
 app.post("/api/register", async (req, res) => {

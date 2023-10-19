@@ -1,16 +1,27 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const sql = require("mssql");
+const sql = require("msnodesqlv8");
 const saltRounds = 10;
 const jwtSecret = "xtenship";
-const db = require("./db");
+
+// Define your connection string
+const connectionString = "DSN=internx;Trusted_Connection=Yes;";
+// Set up the configuration
+const config = {
+  connectionString: connectionString,
+};
 
 let users = [];
 
 async function connectToDatabase() {
   try {
-    await sql.connect(db.config);
-    console.log("Connected to the database");
+    await sql.open(connectionString, (err, conn) => {
+      if (err) {
+        console.error("Error connecting to the database:", err);
+      } else {
+        console.log("Connected to MSSQL Server database 2");
+      }
+    });
     await getUsers();
   } catch (error) {
     console.error("Error connecting to the database:", error);
@@ -21,40 +32,56 @@ connectToDatabase();
 
 async function getUsers() {
   try {
-    const query = "SELECT * FROM Users";
-    const result = await sql.query(query);
-    users = result.recordset;
-    console.log("Users fetched:", users);
+    let query = "SELECT id, first_name, last_name, email, role_id FROM Users";
+    sql.query(connectionString, query, (err, results) => {
+      if (err) {
+        console.error("Error fetching users:", err);
+        res.status(500).json({ error: "Internal server error" });
+      } else {
+        console.log(results);
+      }
+    });
   } catch (error) {
     console.error("Error fetching users:", error);
   }
 }
 
 async function authenticateUser(email, password) {
-  try {
-    await sql.connect(db.config);
+  return new Promise((resolve, reject) => {
+    const query = "SELECT id, role_id, password FROM Users WHERE email = ?";
+    
+    // Use a parameterized query to prevent SQL injection
+    sql.query(connectionString, query, [email], (err, results) => {
+      if (err) {
+        console.error("Error fetching user:", err);
+        reject({ success: false, message: "Internal server error" });
+      } else {
+        const user = results[0];
+        
+        if (!user) {
+          resolve({ success: false, message: "User not found" });
+        }
 
-    const query = `SELECT * FROM Users WHERE email = '${email}'`;
-    const result = await sql.query(query);
-    const user = result.recordset[0];
+        // Compare passwords securely
+        if (bcrypt.compareSync(password, user.password)) {
+          // Generate a JWT token
+          const token = jwt.sign(
+            { id: user.id, role: user.role_id },
+            jwtSecret,
+            { expiresIn: "1h" }
+          );
 
-    if (!user) return null;
-
-    console.log("Retrieved user:", user);
-
-    if (bcrypt.compareSync(password, user.password)) {
-      const token = jwt.sign({ id: user.id, role: user.role_id }, jwtSecret, {
-        expiresIn: "1h",
-      });
-      console.log("Generated token:", token);
-      return { user: { ...user, password: undefined }, token };
-    }
-    return null;
-  } catch (error) {
-    console.error("Error during authentication:", error);
-    return null;
-  }
+          // Return user data without the password and the token
+          const userWithoutPassword = { ...user, password: undefined };
+          resolve({ success: true, user: userWithoutPassword, token });
+        } else {
+          resolve({ success: false, message: "Invalid credentials" });
+        }
+      }
+    });
+  });
 }
+
 
 
 module.exports = { authenticateUser, jwtSecret, users };
