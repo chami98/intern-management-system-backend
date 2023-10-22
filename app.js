@@ -74,13 +74,13 @@ app.get("/api/users", async (req, res) => {
   let role_id = undefined;
 
   if (user === "intern") {
-    role_id = 1;
+    role_id = 4;
   } else if (user === "admin") {
-    role_id = 2;
+    role_id = 1;
   } else if (user === "mentor") {
     role_id = 3;
   } else if (user === "evaluator") {
-    role_id = 4;
+    role_id = 2;
   } else if (user === "management") {
     role_id = 5;
   }
