@@ -346,13 +346,13 @@ app.post("/api/register", async (req, res) => {
           password: bcrypt.hashSync(password, saltRounds),
           role_id:
             role === "Intern"
-              ? 1
+              ? 4
               : role === "Admin"
-              ? 2
+              ? 1
               : role === "Mentor"
               ? 3
               : role === "Evaluator"
-              ? 4
+              ? 2
               : role === "Management"
               ? 5
               : 6,
