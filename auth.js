@@ -56,26 +56,27 @@ async function authenticateUser(email, password) {
         console.error("Error fetching user:", err);
         reject({ success: false, message: "Internal server error" });
       } else {
-        const user = results[0];
-        
-        if (!user) {
+        if (results.length === 0) {
+          // No user found with the provided email
           resolve({ success: false, message: "User not found" });
-        }
-
-        // Compare passwords securely
-        if (bcrypt.compareSync(password, user.password)) {
-          // Generate a JWT token
-          const token = jwt.sign(
-            { id: user.id, role: user.role_id },
-            jwtSecret,
-            { expiresIn: "1h" }
-          );
-
-          // Return user data without the password and the token
-          const userWithoutPassword = { ...user, password: undefined };
-          resolve({ success: true, user: userWithoutPassword, token });
         } else {
-          resolve({ success: false, message: "Invalid credentials" });
+          const user = results[0];
+
+          // Compare passwords securely
+          if (bcrypt.compareSync(password, user.password)) {
+            // Generate a JWT token
+            const token = jwt.sign(
+              { id: user.id, role: user.role_id },
+              jwtSecret,
+              { expiresIn: "1h" }
+            );
+
+            // Return user data without the password and the token
+            const userWithoutPassword = { ...user, password: undefined };
+            resolve({ success: true, user: userWithoutPassword, token });
+          } else {
+            resolve({ success: false, message: "Invalid credentials" });
+          }
         }
       }
     });

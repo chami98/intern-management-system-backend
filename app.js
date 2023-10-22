@@ -156,9 +156,9 @@ app.get("/api/interns/:id", async (req, res) => {
         U.email,
         U.role_id,
         I.university,
-        I.interview1_score,
+        I.evaluation1_score,
         I.evaluation1_feedback,
-        I.interview2_score,
+        I.evaluation2_score,
         I.evaluation2_feedback,
         I.accomplishments,
         I.gpa,
@@ -520,6 +520,7 @@ app.post("/invite", (req, res) => {
       res.status(500).json({ message: "Error sending invitation email." });
     });
 });
+
 
 // Start the server
 app.listen(port, () => {
