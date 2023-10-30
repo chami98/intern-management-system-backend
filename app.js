@@ -16,7 +16,6 @@ require("dotenv").config();
 
 const sql = require("msnodesqlv8");
 
-// Create a connection string for your local MSSQL Server.
 // Replace the placeholders with your server name and database name.
 // const connectionString = "Server=localhost\\SQLExpress;Database=InternX;Trusted_Connection=Yes;Driver={SQL Server Native Client 11.0}";
 const connectionString = "DSN=internx;Trusted_Connection=Yes;";
