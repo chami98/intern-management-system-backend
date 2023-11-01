@@ -148,26 +148,27 @@ app.get("/api/interns/:id", async (req, res) => {
   const { id } = req.params;
   try {
     const query = `
-      SELECT
-        U.id,
-        U.first_name,
-        U.last_name,
-        U.email,
-        U.role_id,
-        I.university,
-        I.evaluation1_score,
-        I.evaluation1_feedback,
-        I.evaluation2_score,
-        I.evaluation2_feedback,
-        I.accomplishments,
-        I.gpa,
-        I.assigned_team,
-        I.mentor_id,
-        I.cv_url
-      FROM Users AS U
-      LEFT JOIN Interns AS I ON U.id = I.user_id
-      WHERE U.id = ${id}
-    `;
+  SELECT
+    U.id,
+    U.first_name,
+    U.last_name,
+    U.email,
+    U.role_id,
+    I.university,
+    I.evaluation1_score,
+    I.evaluation1_feedback,
+    I.evaluation2_score,
+    I.evaluation2_feedback,
+    I.accomplishments,
+    I.gpa,
+    I.assigned_team,
+    I.mentor_id,
+    I.cv_url
+  FROM Users AS U
+  LEFT JOIN Interns AS I ON U.id = I.user_id
+  WHERE U.id = ${id} AND U.role_id = 4
+`;
+
 
     // Execute the SQL query to retrieve intern information by ID
     sql.query(connectionString, query, (err, results) => {
