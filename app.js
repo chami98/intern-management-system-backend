@@ -155,6 +155,8 @@ app.get("/api/interns/:id", async (req, res) => {
     U.email,
     U.role_id,
     I.university,
+    I.interview_score,
+    I.interview_feedback,
     I.evaluation1_score,
     I.evaluation1_feedback,
     I.evaluation2_score,
