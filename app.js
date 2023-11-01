@@ -164,6 +164,7 @@ app.get("/api/interns/:id", async (req, res) => {
     I.accomplishments,
     I.gpa,
     I.assigned_team,
+    I.project_details,
     I.mentor_id,
     I.cv_url
   FROM Users AS U
