@@ -5,7 +5,7 @@ const { authenticateUser, jwtSecret, users } = require("./auth");
 var cors = require("cors");
 const bcrypt = require("bcryptjs");
 const saltRounds = 10;
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.json());
 // const sql = require("mssql");
 const db = require("./db");
