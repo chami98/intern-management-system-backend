@@ -46,6 +46,10 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
   try {
     const file = req.file;
 
+    const userID = req.body.userID ? req.body.userID : null;
+
+    console.log(userID);
+
     // Create an Upload object with the file stream
     const uploader = new Upload({
       client: s3Client,
@@ -62,6 +66,37 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
     // Generate and return the S3 object URL
     const fileUrl = `https://${uploader.params.Bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${uploader.params.Key}`;
     res.json({ fileUrl });
+    if (userID) {
+      const checkQuery = `SELECT user_id FROM Interns WHERE user_id = ${userID}`;
+      sql.query(connectionString, checkQuery, (err, results) => {
+        if (err) {
+          console.error("Error checking if the record exists:", err);
+        } else {
+          if (results.length > 0) {
+            // Record exists, update it
+            const updateQuery = `UPDATE Interns SET cv_url = '${fileUrl}' WHERE user_id = ${userID}`;
+            sql.query(connectionString, updateQuery, (err, updateResult) => {
+              if (err) {
+                console.error("Error updating CV URL:", err);
+              } else {
+                console.log("CV URL updated successfully");
+              }
+            });
+          } else {
+            // Record doesn't exist, insert a new one
+            const insertQuery = `INSERT INTO Interns (user_id, cv_url) VALUES (${userID}, '${fileUrl}')`;
+            sql.query(connectionString, insertQuery, (err, insertResult) => {
+              if (err) {
+                console.error("Error inserting CV URL:", err);
+              } else {
+                console.log("CV URL inserted successfully");
+              }
+            });
+          }
+        }
+      });
+    }
+    
   } catch (error) {
     console.error("Error uploading file to S3:", error);
     res.status(500).json({ error: "Error uploading file to S3" });
@@ -211,7 +246,6 @@ app.post("/api/interns/:id", async (req, res) => {
     evaluation2_score: data.evaluation2_score,
     evaluation1_feedback: data.evaluation1_feedback,
     evaluation2_feedback: data.evaluation2_feedback,
-    cv_url: "N/A",
     status: "Pending",
     project_details: data.project_details
   };
@@ -226,20 +260,14 @@ app.post("/api/interns/:id", async (req, res) => {
         return res.status(500).json({ error: "Internal server error" });
       }
 
-      // if (selectResult[0].count > 0) {
-      //   return res
-      //     .status(400)
-      //     .json({ error: "Intern profile with the same ID already exists" });
-      // }
-
       // Insert a new intern profile
       const insertQuery = `
         INSERT INTO Interns (
           university, accomplishments, gpa, mentor_id, assigned_team, interview_score, interview_feedback,
           evaluation1_score, evaluation2_score, evaluation1_feedback,
-          evaluation2_feedback, cv_url, status, user_id , project_details
+          evaluation2_feedback, status, user_id , project_details
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
       sql.query(connectionString, insertQuery, [
@@ -254,7 +282,6 @@ app.post("/api/interns/:id", async (req, res) => {
         internProfile.evaluation2_score,
         internProfile.evaluation1_feedback,
         internProfile.evaluation2_feedback,
-        internProfile.cv_url,
         internProfile.status,
         internProfile.user_id,
         internProfile.project_details
