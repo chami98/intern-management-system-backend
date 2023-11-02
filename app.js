@@ -234,14 +234,13 @@ app.post("/api/interns/:id", async (req, res) => {
   const data = req.body;
 
   const internProfile = {
-    user_id: user_id,
     university: data.university,
     accomplishments: data.accomplishments,
     gpa: data.gpa,
     mentor_id: data.mentor_id,
     assigned_team: data.assigned_team,
     interview_score: data.interview_score,
-    interview_feedback:data.interview_feedback,
+    interview_feedback: data.interview_feedback,
     evaluation1_score: data.evaluation1_score,
     evaluation2_score: data.evaluation2_score,
     evaluation1_feedback: data.evaluation1_feedback,
@@ -260,49 +259,88 @@ app.post("/api/interns/:id", async (req, res) => {
         return res.status(500).json({ error: "Internal server error" });
       }
 
-      // Insert a new intern profile
-      const insertQuery = `
-        INSERT INTO Interns (
-          university, accomplishments, gpa, mentor_id, assigned_team, interview_score, interview_feedback,
-          evaluation1_score, evaluation2_score, evaluation1_feedback,
-          evaluation2_feedback, status, user_id , project_details
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
+      if (selectResult[0].count > 0) {
+        // Update the existing intern profile
+        const updateQuery = `
+          UPDATE Interns
+          SET university = ?, accomplishments = ?, gpa = ?, mentor_id = ?, assigned_team = ?,
+              interview_score = ?, interview_feedback = ?, evaluation1_score = ?, evaluation2_score = ?,
+              evaluation1_feedback = ?, evaluation2_feedback = ?, status = ?, project_details = ?
+          WHERE user_id = ?
+        `;
 
-      sql.query(connectionString, insertQuery, [
-        internProfile.university,
-        internProfile.accomplishments,
-        internProfile.gpa,
-        internProfile.mentor_id,
-        internProfile.assigned_team,
-        internProfile.interview_score,
-        internProfile.interview_feedback,
-        internProfile.evaluation1_score,
-        internProfile.evaluation2_score,
-        internProfile.evaluation1_feedback,
-        internProfile.evaluation2_feedback,
-        internProfile.status,
-        internProfile.user_id,
-        internProfile.project_details
-      ], (err) => {
-        if (err) {
-          console.error("Error creating intern profile:", err);
-          return res.status(500).json({ error: "Internal server error" });
-        }
+        sql.query(connectionString, updateQuery, [
+          internProfile.university,
+          internProfile.accomplishments,
+          internProfile.gpa,
+          internProfile.mentor_id,
+          internProfile.assigned_team,
+          internProfile.interview_score,
+          internProfile.interview_feedback,
+          internProfile.evaluation1_score,
+          internProfile.evaluation2_score,
+          internProfile.evaluation1_feedback,
+          internProfile.evaluation2_feedback,
+          internProfile.status,
+          internProfile.project_details,
+          user_id
+        ], (err) => {
+          if (err) {
+            console.error("Error updating intern profile:", err);
+            return res.status(500).json({ error: "Internal server error" });
+          }
 
-        // Return the success response
-        res.status(201).json({
-          message: "Intern profile created successfully",
-          data: internProfile,
+          // Return the success response for the update
+          res.status(200).json({
+            message: "Intern profile updated successfully",
+            data: internProfile,
+          });
         });
-      });
+      } else {
+        // Insert a new intern profile
+        const insertQuery = `
+          INSERT INTO Interns (
+            user_id, university, accomplishments, gpa, mentor_id, assigned_team, interview_score, interview_feedback,
+            evaluation1_score, evaluation2_score, evaluation1_feedback, evaluation2_feedback, status, project_details
+          )
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        sql.query(connectionString, insertQuery, [
+          user_id,
+          internProfile.university,
+          internProfile.accomplishments,
+          internProfile.gpa,
+          internProfile.mentor_id,
+          internProfile.assigned_team,
+          internProfile.interview_score,
+          internProfile.interview_feedback,
+          internProfile.evaluation1_score,
+          internProfile.evaluation2_score,
+          internProfile.evaluation1_feedback,
+          internProfile.evaluation2_feedback,
+          internProfile.status,
+          internProfile.project_details
+        ], (err) => {
+          if (err) {
+            console.error("Error creating intern profile:", err);
+            return res.status(500).json({ error: "Internal server error" });
+          }
+
+          // Return the success response for the insert
+          res.status(201).json({
+            message: "Intern profile created/updated successfully",
+            data: internProfile,
+          });
+        });
+      }
     });
   } catch (error) {
-    console.error("Error creating intern profile:", error);
+    console.error("Error creating/updating intern profile:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 
 
