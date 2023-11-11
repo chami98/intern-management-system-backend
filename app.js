@@ -538,75 +538,61 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
-// Route for upgrading/downgrading permissions
-app.put("/api/users/:email/role", (req, res) => {
-  const { email } = req.params;
+// Route for upgrading/downgrading permissions example Admin to Intern
+app.patch("/api/users/:id", async (req, res) => {
+  const { id } = req.params;
   const { role } = req.body;
+
+  const role_id = role === "Intern" ? 4 : role === "Admin" ? 1 : role === "Mentor" ? 3 : role === "Evaluator" ? 2 : role === "Management" ? 5 : 6;
 
   // Validate data
   if (!role) {
-    return res.status(400).json({ message: "Please provide the new role." });
+    return res.status(400).json({ message: "Please provide a valid role." });
   }
 
-  // Check if the role is valid (Admin, Mentor, Intern, etc.)
-  const validRoles = [
-    "Admin",
-    "Mentor",
-    "Intern",
-    "Evaluator" /* Add more roles as needed */,
-  ];
-  if (!validRoles.includes(role)) {
-    return res.status(400).json({ message: "Invalid role provided." });
+  try {
+    // Create a new database connection
+    sql.open(connectionString, (err, conn) => {
+      if (err) {
+        console.error("Error opening database connection:", err);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+
+      // Check if the user exists in the database
+      const userCheckQuery = `SELECT * FROM Users WHERE id = ${id}`;
+      conn.query(userCheckQuery, (err, userCheckResult) => {
+        if (err) {
+          conn.close();
+          console.error("Error checking user:", err);
+          return res.status(500).json({ error: "Internal server error" });
+        }
+
+        if (userCheckResult.length === 0) {
+          conn.close();
+          return res.status(404).json({ message: "User not found" });
+        }
+
+        // Update the user role
+        const updateQuery = `UPDATE Users SET role_id = ${role_id} WHERE id = ${id}`;
+        conn.query(updateQuery, (err, updateResult) => {
+          conn.close();
+          if (err) {
+            console.error("Error updating user role:", err);
+            return res.status(500).json({ error: "Internal server error" });
+          }
+
+          // Return the success response for the update
+          res.status(200).json({
+            message: "User role updated successfully",
+            data: { id, role },
+          });
+        });
+      });
+    });
+  } catch (error) {
+    console.error("Error updating user role:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
-
-  // Find the user by ID in the mssql
-  const user = users.find((user) => user.id === parseInt(id));
-  if (!user) {
-    return res.status(404).json({ message: "User not found." });
-  }
-
-  // Update the user's role
-  user.role = role;
-
-  // Respond with the updated user data
-  res.json(user);
-});
-
-const internProfiles = [];
-
-// Route to update an intern profile
-app.put("/api/interns/:name", (req, res) => {
-  const internName = req.params.name;
-  const data = req.body;
-
-  // Find the intern profile to be updated
-  const internProfile = internProfiles.find(
-    (profile) => profile.name === internName
-  );
-  if (!internProfile) {
-    return res.status(404).json({ message: "Intern profile not found" });
-  }
-
-  // Update the intern profile information
-  internProfile.name = data.name;
-  internProfile.university = data.university;
-  internProfile.interview_score = data.interview_score;
-  internProfile.interview_feedback = data.interview_feedback;
-  internProfile.evolution1_score = data.evolution1_score;
-  internProfile.evolution1_feedback = data.evolution1_feedback;
-  internProfile.evolution2_score = data.evolution2_score;
-  internProfile.evolution2_feedback = data.evolution2_feedback;
-  internProfile.accomplishments = data.accomplishments;
-  internProfile.gpa = data.gpa;
-  internProfile.project_details = data.project_details;
-  internProfile.assigned_team = data.assigned_team;
-  internProfile.mentor = data.mentor;
-  internProfile.cv_url = data.cv_url;
-
-  return res.json({
-    message: "Intern profile updated successfully",
-    data: internProfile,
-  });
 });
 
 // Route to update intern profile status
