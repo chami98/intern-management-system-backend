@@ -208,7 +208,8 @@ app.get("/api/interns/:id", async (req, res) => {
     I.assigned_team,
     I.project_details,
     I.mentor_id,
-    I.cv_url
+    I.cv_url,
+    I.status
   FROM Users AS U
   LEFT JOIN Interns AS I ON U.id = I.user_id
   WHERE U.id = ${id} AND U.role_id = 4
