@@ -261,7 +261,7 @@ app.get("/api/interns", async (req, res) => {
     I.cv_url,
     I.status
   FROM Users AS U
-  LEFT JOIN Interns AS I ON U.id = I.user_id
+  INNER JOIN Interns AS I ON U.id = I.user_id
   WHERE U.role_id = 4
 `;
 
