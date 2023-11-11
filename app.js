@@ -42,6 +42,8 @@ const storage = multer.memoryStorage(); // Store the file in memory
 const upload = multer({ storage });
 
 // Route to upload a file to S3
+const { BlobServiceClient } = require('@azure/storage-blob');
+
 app.post("/api/upload", upload.single("file"), async (req, res) => {
   try {
     const file = req.file;
@@ -50,22 +52,27 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
 
     console.log(userID);
 
-    // Create an Upload object with the file stream
-    const uploader = new Upload({
-      client: s3Client,
-      params: {
-        Bucket: process.env.AWS_BUCKET, // Replace with your bucket name
-        Key: Date.now().toString() + ".pdf", // Specify the S3 object key (filename)
-        Body: file.buffer,
-        ACL: "public-read", // Set the ACL as needed
-      },
-    });
+    // Create a BlobServiceClient
+    const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
 
-    // Execute the upload
-    const uploadResponse = await uploader.done();
-    // Generate and return the S3 object URL
-    const fileUrl = `https://${uploader.params.Bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${uploader.params.Key}`;
+    // Create a container client
+    const containerName = process.env.AZURE_CONTAINER_NAME;
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+
+    // Generate a unique blob name
+    const blobName = `${Date.now().toString()}.pdf`;
+
+    // Create a block blob client
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+    // Upload file to Azure Blob Storage
+    await blockBlobClient.upload(file.buffer, file.buffer.length);
+
+    // Generate the Blob URL
+    const fileUrl = blockBlobClient.url;
+
     res.json({ fileUrl });
+
     if (userID) {
       const checkQuery = `SELECT user_id FROM Interns WHERE user_id = ${userID}`;
       sql.query(connectionString, checkQuery, (err, results) => {
@@ -96,12 +103,12 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
         }
       });
     }
-    
   } catch (error) {
-    console.error("Error uploading file to S3:", error);
-    res.status(500).json({ error: "Error uploading file to S3" });
+    console.error("Error uploading file to Azure Blob Storage:", error);
+    res.status(500).json({ error: "Error uploading file to Azure Blob Storage" });
   }
 });
+
 // route to get all users from aws rds mssql database with optional query param
 app.get("/api/users", async (req, res) => {
   const { user } = req.query;
