@@ -595,41 +595,67 @@ app.patch("/api/users/:id", async (req, res) => {
   }
 });
 
+
+
 // Route to update intern profile status
-app.patch("/api/interns/:name/status", (req, res) => {
-  const internName = req.params.name;
+app.patch("/api/interns/:id", async (req, res) => {
+  const { id } = req.params;
   const { status } = req.body;
 
-  // Find the intern profile to be updated
-  const internProfile = internProfiles.find(
-    (profile) => profile.name === internName
-  );
-  if (!internProfile) {
-    return res.status(404).json({ message: "Intern profile not found" });
+  // Validate data
+  if (status !== "Pending" && status !== "Interview Scheduled" && status !== "Interview Complete" && status !== "Hired" && status !== "Rejected" && status !== "Internship Started" && status !== "Internship Ended") {
+    return res
+      .status(400)
+      .json({ message: "Please provide a valid status." });
   }
 
-  // Check if the provided status is valid
-  const validStatuses = [
-    "Pending",
-    "Interview Scheduled",
-    "Interview Complete",
-    "Hired",
-    "Rejected",
-    "Internship Started",
-    "Internship Ended",
-  ];
-  if (!validStatuses.includes(status)) {
-    return res.status(400).json({ message: "Invalid status provided" });
+  try {
+    // Create a new database connection
+    sql.open(connectionString, (err, conn) => {
+      if (err) {
+        console.error("Error opening database connection:", err);
+        return res.status(500).json({ error: "Internal server error" });
+      }
+
+      // Check if the intern exists in the database
+      const internCheckQuery = `SELECT * FROM Interns WHERE user_id = ${id}`;
+      conn.query(internCheckQuery, (err, internCheckResult) => {
+        if (err) {
+          conn.close();
+          console.error("Error checking intern:", err);
+          return res.status(500).json({ error: "Internal server error" });
+        }
+
+        if (internCheckResult.length === 0) {
+          conn.close();
+          return res.status(404).json({ message: "Intern not found" });
+        }
+
+        // Update the intern status
+        const updateQuery = `UPDATE Interns SET status = '${status}' WHERE user_id = ${id}`;
+        conn.query(updateQuery, (err, updateResult) => {
+          conn.close();
+          if (err) {
+            console.error("Error updating intern status:", err);
+            return res.status(500).json({ error: "Internal server error" });
+          }
+
+          // Return the success response for the update
+          res.status(200).json({
+            message: "Intern status updated successfully",
+            data: { id, status },
+          });
+        });
+      });
+    });
+  } catch (error) {
+    console.error("Error updating intern status:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
-
-  // Update the intern profile status
-  internProfile.status = status;
-
-  return res.json({
-    message: "Intern profile status updated successfully",
-    data: internProfile,
-  });
 });
+
+
+
 
 app.post("/invite", (req, res) => {
   const { email, role } = req.body;
