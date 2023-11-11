@@ -235,6 +235,86 @@ app.get("/api/interns/:id", async (req, res) => {
   }
 });
 
+
+// route to get all interns from  mssql database
+app.get("/api/interns", async (req, res) => {
+  try {
+    const query = `
+  SELECT
+    U.id,
+    U.first_name,
+    U.last_name,
+    U.email,
+    U.role_id,
+    I.university,
+    I.interview_score,
+    I.interview_feedback,
+    I.evaluation1_score,
+    I.evaluation1_feedback,
+    I.evaluation2_score,
+    I.evaluation2_feedback,
+    I.accomplishments,
+    I.gpa,
+    I.assigned_team,
+    I.project_details,
+    I.mentor_id,
+    I.cv_url,
+    I.status
+  FROM Users AS U
+  LEFT JOIN Interns AS I ON U.id = I.user_id
+  WHERE U.role_id = 4
+`;
+
+    // Execute the SQL query to retrieve all interns
+    sql.query(connectionString, query, (err, results) => {
+      if (err) {
+        console.error("Error fetching interns:", err);
+        res.status(500).json({ error: "Internal server error" });
+      } else {
+        res.json(results);
+      }
+    });
+  } catch (error) {
+    console.error("Error in the try-catch block:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// route to get all mentors from  mssql database
+app.get("/api/mentors", async (req, res) => {
+  try {
+    const query = `
+  SELECT
+    U.id,
+    U.first_name,
+    U.last_name,
+    U.email,
+    U.role_id,
+    I.assigned_team,
+    I.project_details,
+    I.status
+  FROM Users AS U
+  LEFT JOIN Interns AS I ON U.id = I.mentor_id
+  WHERE U.role_id = 3
+`;
+
+    // Execute the SQL query to retrieve all mentors
+    sql.query(connectionString, query, (err, results) => {
+      if (err) {
+        console.error("Error fetching mentors:", err);
+        res.status(500).json({ error: "Internal server error" });
+      } else {
+        res.json(results);
+      }
+    });
+  } catch (error) {
+    console.error("Error in the try-catch block:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// route to get all
+
 // Route to create an intern profile for a specific user
 
 app.post("/api/interns/:id", async (req, res) => {
