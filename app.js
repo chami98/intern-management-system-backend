@@ -313,7 +313,6 @@ app.get("/api/mentors", async (req, res) => {
   }
 });
 
-// route to get all
 
 // Route to create an intern profile for a specific user
 
@@ -428,11 +427,6 @@ app.post("/api/interns/:id", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
-
-
-
-
 
 // Login route to authenticate users and issue JWT token
 app.post("/api/login", async (req, res) => {
