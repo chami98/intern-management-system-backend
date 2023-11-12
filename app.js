@@ -332,6 +332,7 @@ app.post("/api/interns/:id", async (req, res) => {
     accomplishments: data.accomplishments,
     gpa: data.gpa,
     mentor_id: data.mentor_id,
+    evaluator_id: data.evaluator_id,
     assigned_team: data.assigned_team,
     interview_score: data.interview_score,
     interview_feedback: data.interview_feedback,
@@ -357,7 +358,7 @@ app.post("/api/interns/:id", async (req, res) => {
         // Update the existing intern profile
         const updateQuery = `
           UPDATE Interns
-          SET university = ?, accomplishments = ?, gpa = ?, mentor_id = ?, assigned_team = ?,
+          SET university = ?, accomplishments = ?, gpa = ?, mentor_id = ?, evaluator_id = ?, assigned_team = ?,
               interview_score = ?, interview_feedback = ?, evaluation1_score = ?, evaluation2_score = ?,
               evaluation1_feedback = ?, evaluation2_feedback = ?, status = ?, project_details = ?
           WHERE user_id = ?
@@ -368,6 +369,7 @@ app.post("/api/interns/:id", async (req, res) => {
           internProfile.accomplishments,
           internProfile.gpa,
           internProfile.mentor_id,
+          internProfile.evaluator_id,
           internProfile.assigned_team,
           internProfile.interview_score,
           internProfile.interview_feedback,
@@ -394,10 +396,10 @@ app.post("/api/interns/:id", async (req, res) => {
         // Insert a new intern profile
         const insertQuery = `
           INSERT INTO Interns (
-            user_id, university, accomplishments, gpa, mentor_id, assigned_team, interview_score, interview_feedback,
+            user_id, university, accomplishments, gpa, mentor_id, evaluator_id, assigned_team, interview_score, interview_feedback,
             evaluation1_score, evaluation2_score, evaluation1_feedback, evaluation2_feedback, status, project_details
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         sql.query(connectionString, insertQuery, [
@@ -406,6 +408,7 @@ app.post("/api/interns/:id", async (req, res) => {
           internProfile.accomplishments,
           internProfile.gpa,
           internProfile.mentor_id,
+          internProfile.evaluator_id,
           internProfile.assigned_team,
           internProfile.interview_score,
           internProfile.interview_feedback,
