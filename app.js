@@ -5,7 +5,6 @@ const { authenticateUser, jwtSecret, users } = require("./auth");
 var cors = require("cors");
 const bcrypt = require("bcryptjs");
 const saltRounds = 10;
-app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.json());
 // const sql = require("mssql");
 const db = require("./db");
@@ -13,6 +12,14 @@ const { Upload } = require("@aws-sdk/lib-storage");
 const multer = require("multer");
 const { S3Client } = require("@aws-sdk/client-s3");
 require("dotenv").config();
+
+// Enable CORS for all routes
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
 
 const sql = require("msnodesqlv8");
 
@@ -589,10 +596,8 @@ app.patch("/api/users/:id", async (req, res) => {
   }
 });
 
-
-
 // Route to update intern profile status
-app.patch("/api/interns/:id", async (req, res) => {
+app.put("/api/interns/:id", async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 
