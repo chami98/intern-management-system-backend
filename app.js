@@ -332,6 +332,7 @@ app.post("/api/interns/:id", async (req, res) => {
     accomplishments: data.accomplishments,
     gpa: data.gpa,
     mentor_id: data.mentor_id,
+    evaluator_id: data.evaluator_id,
     assigned_team: data.assigned_team,
     interview_score: data.interview_score,
     interview_feedback: data.interview_feedback,
@@ -357,7 +358,7 @@ app.post("/api/interns/:id", async (req, res) => {
         // Update the existing intern profile
         const updateQuery = `
           UPDATE Interns
-          SET university = ?, accomplishments = ?, gpa = ?, mentor_id = ?, assigned_team = ?,
+          SET university = ?, accomplishments = ?, gpa = ?, mentor_id = ?, evaluator_id = ?, assigned_team = ?,
               interview_score = ?, interview_feedback = ?, evaluation1_score = ?, evaluation2_score = ?,
               evaluation1_feedback = ?, evaluation2_feedback = ?, status = ?, project_details = ?
           WHERE user_id = ?
@@ -368,6 +369,7 @@ app.post("/api/interns/:id", async (req, res) => {
           internProfile.accomplishments,
           internProfile.gpa,
           internProfile.mentor_id,
+          internProfile.evaluator_id,
           internProfile.assigned_team,
           internProfile.interview_score,
           internProfile.interview_feedback,
@@ -394,10 +396,10 @@ app.post("/api/interns/:id", async (req, res) => {
         // Insert a new intern profile
         const insertQuery = `
           INSERT INTO Interns (
-            user_id, university, accomplishments, gpa, mentor_id, assigned_team, interview_score, interview_feedback,
+            user_id, university, accomplishments, gpa, mentor_id, evaluator_id, assigned_team, interview_score, interview_feedback,
             evaluation1_score, evaluation2_score, evaluation1_feedback, evaluation2_feedback, status, project_details
           )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         sql.query(connectionString, insertQuery, [
@@ -406,6 +408,7 @@ app.post("/api/interns/:id", async (req, res) => {
           internProfile.accomplishments,
           internProfile.gpa,
           internProfile.mentor_id,
+          internProfile.evaluator_id,
           internProfile.assigned_team,
           internProfile.interview_score,
           internProfile.interview_feedback,
@@ -540,14 +543,14 @@ app.post("/api/register", async (req, res) => {
 });
 
 // Route for upgrading/downgrading permissions example Admin to Intern
-app.patch("/api/users/:id", async (req, res) => {
+app.put("/api/users/:id", async (req, res) => {
   const { id } = req.params;
-  const { role } = req.body;
+  const { role_id } = req.body;
 
-  const role_id = role === "Intern" ? 4 : role === "Admin" ? 1 : role === "Mentor" ? 3 : role === "Evaluator" ? 2 : role === "Management" ? 5 : 6;
+  const role = role_id === 4 ? "Intern" : role_id === 1 ? "Admin" : role_id === 3 ? "Mentor" : role_id === 2 ? "Evaluator" : role_id === 5 ? "Management" : "Unknown";
 
   // Validate data
-  if (!role) {
+  if (!role_id) {
     return res.status(400).json({ message: "Please provide a valid role." });
   }
 
@@ -585,7 +588,7 @@ app.patch("/api/users/:id", async (req, res) => {
           // Return the success response for the update
           res.status(200).json({
             message: "User role updated successfully",
-            data: { id, role },
+            data: { id, role_id },
           });
         });
       });
