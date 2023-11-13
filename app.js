@@ -543,14 +543,14 @@ app.post("/api/register", async (req, res) => {
 });
 
 // Route for upgrading/downgrading permissions example Admin to Intern
-app.patch("/api/users/:id", async (req, res) => {
+app.put("/api/users/:id", async (req, res) => {
   const { id } = req.params;
-  const { role } = req.body;
+  const { role_id } = req.body;
 
-  const role_id = role === "Intern" ? 4 : role === "Admin" ? 1 : role === "Mentor" ? 3 : role === "Evaluator" ? 2 : role === "Management" ? 5 : 6;
+  const role = role_id === 4 ? "Intern" : role_id === 1 ? "Admin" : role_id === 3 ? "Mentor" : role_id === 2 ? "Evaluator" : role_id === 5 ? "Management" : "Unknown";
 
   // Validate data
-  if (!role) {
+  if (!role_id) {
     return res.status(400).json({ message: "Please provide a valid role." });
   }
 
@@ -588,7 +588,7 @@ app.patch("/api/users/:id", async (req, res) => {
           // Return the success response for the update
           res.status(200).json({
             message: "User role updated successfully",
-            data: { id, role },
+            data: { id, role_id },
           });
         });
       });
