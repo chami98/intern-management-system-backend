@@ -666,13 +666,13 @@ app.post('/api/invite', (req, res) => {
   const mailTransporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: 'chamikara98@gmail.com',
-      pass: 'vgkg omyt iara ahvw'
+      user: process.env.GMAIL_USERNAME,
+      pass: process.env.GMAIL_APP_PASSWORD
     },
   });
 
   const mailDetails = {
-    from: 'chamikara98@gmail.com',
+    from: process.env.GMAIL_USERNAME,
     to,
     subject,
     text,
