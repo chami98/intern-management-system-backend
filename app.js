@@ -12,6 +12,8 @@ const { Upload } = require("@aws-sdk/lib-storage");
 const multer = require("multer");
 const { S3Client } = require("@aws-sdk/client-s3");
 require("dotenv").config();
+const nodemailer = require('nodemailer');
+
 
 // Enable CORS for all routes
 app.use((req, res, next) => {
@@ -657,38 +659,34 @@ app.put("/api/interns/:id", async (req, res) => {
 });
 
 
+app.post('/api/invite', (req, res) => {
+  const { to, subject, text } = req.body;
 
+  // Replace with your email and password
+  const mailTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USERNAME,
+      pass: process.env.GMAIL_APP_PASSWORD
+    },
+  });
 
-app.post("/invite", (req, res) => {
-  const { email, role } = req.body;
+  const mailDetails = {
+    from: process.env.GMAIL_USERNAME,
+    to,
+    subject,
+    text,
+  };
 
-  // Validate data
-  if (!email || !role) {
-    return res
-      .status(400)
-      .json({ message: "Please provide both email and role." });
-  }
-
-  // Check if the role is valid (Admin, Management, Intern, etc.)
-  const validRoles = [
-    "Admin",
-    "Management",
-    "Intern",
-    "Evaluator" /* Add more roles as needed */,
-  ];
-  if (!validRoles.includes(role)) {
-    return res.status(400).json({ message: "Invalid role provided." });
-  }
-
-  // Send invitation email
-  sendInvitationEmail(email, role)
-    .then(() => {
-      res.json({ message: "Invitation sent successfully." });
-    })
-    .catch((error) => {
-      console.error("Error sending invitation email:", error);
-      res.status(500).json({ message: "Error sending invitation email." });
-    });
+  mailTransporter.sendMail(mailDetails, (err, data) => {
+    if (err) {
+      console.log('Error Occurs', err);
+      res.status(500).json({ error: 'Error sending email' });
+    } else {
+      console.log('Email sent successfully');
+      res.status(200).json({ message: 'Email sent successfully' });
+    }
+  });
 });
 
 
