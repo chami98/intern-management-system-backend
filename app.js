@@ -687,7 +687,7 @@ app.put("/api/interns/:id", async (req, res) => {
 
 
 app.post("/api/invite", (req, res) => {
-  const { to, firstName, lastName } = req.body;
+  const { email, name } = req.body;
   const subject = "Invitation to InternX - Your Intern Management Solution";
 
   // Replace with your email and password
@@ -701,7 +701,7 @@ app.post("/api/invite", (req, res) => {
 
   const mailDetails = {
     from: process.env.GMAIL_USERNAME,
-    to,
+    to : email,
     subject,
     html: `
     <!DOCTYPE html>
@@ -781,7 +781,7 @@ app.post("/api/invite", (req, res) => {
     <body>
         <div class="container">
             <h1>${subject}</h1>
-            <p class="greeting">Hello, ${firstName} ${lastName}!</p>
+            <p class="greeting">Hello, ${name}!</p>
             <p>
                 Welcome to InternX, your premier Intern Management System! InternX
                 offers a comprehensive solution to streamline your intern management
