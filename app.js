@@ -12,14 +12,13 @@ const { Upload } = require("@aws-sdk/lib-storage");
 const multer = require("multer");
 const { S3Client } = require("@aws-sdk/client-s3");
 require("dotenv").config();
-const nodemailer = require('nodemailer');
-
+const nodemailer = require("nodemailer");
 
 // Enable CORS for all routes
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
 });
 
@@ -51,7 +50,7 @@ const storage = multer.memoryStorage(); // Store the file in memory
 const upload = multer({ storage });
 
 // Route to upload a file to S3
-const { BlobServiceClient } = require('@azure/storage-blob');
+const { BlobServiceClient } = require("@azure/storage-blob");
 
 app.post("/api/upload", upload.single("file"), async (req, res) => {
   try {
@@ -62,7 +61,9 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
     console.log(userID);
 
     // Create a BlobServiceClient
-    const blobServiceClient = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING);
+    const blobServiceClient = BlobServiceClient.fromConnectionString(
+      process.env.AZURE_STORAGE_CONNECTION_STRING
+    );
 
     // Create a container client
     const containerName = process.env.AZURE_CONTAINER_NAME;
@@ -114,7 +115,9 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
     }
   } catch (error) {
     console.error("Error uploading file to Azure Blob Storage:", error);
-    res.status(500).json({ error: "Error uploading file to Azure Blob Storage" });
+    res
+      .status(500)
+      .json({ error: "Error uploading file to Azure Blob Storage" });
   }
 });
 
@@ -224,7 +227,6 @@ app.get("/api/interns/:id", async (req, res) => {
   WHERE U.id = ${id} AND U.role_id = 4
 `;
 
-
     // Execute the SQL query to retrieve intern information by ID
     sql.query(connectionString, query, (err, results) => {
       if (err) {
@@ -243,7 +245,6 @@ app.get("/api/interns/:id", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
 
 // route to get all interns from  mssql database
 app.get("/api/interns", async (req, res) => {
@@ -322,7 +323,6 @@ app.get("/api/mentors", async (req, res) => {
   }
 });
 
-
 // Route to create an intern profile for a specific user
 
 app.post("/api/interns/:id", async (req, res) => {
@@ -343,13 +343,14 @@ app.post("/api/interns/:id", async (req, res) => {
     evaluation1_feedback: data.evaluation1_feedback,
     evaluation2_feedback: data.evaluation2_feedback,
     status: "Pending",
-    project_details: data.project_details
+    project_details: data.project_details,
   };
 
   try {
     // Check if a record with the same intern ID already exists
-    const selectQuery = "SELECT COUNT(*) as count FROM Interns WHERE user_id = ?";
-    
+    const selectQuery =
+      "SELECT COUNT(*) as count FROM Interns WHERE user_id = ?";
+
     sql.query(connectionString, selectQuery, [user_id], (err, selectResult) => {
       if (err) {
         console.error("Error checking for an existing intern profile:", err);
@@ -366,34 +367,39 @@ app.post("/api/interns/:id", async (req, res) => {
           WHERE user_id = ?
         `;
 
-        sql.query(connectionString, updateQuery, [
-          internProfile.university,
-          internProfile.accomplishments,
-          internProfile.gpa,
-          internProfile.mentor_id,
-          internProfile.evaluator_id,
-          internProfile.assigned_team,
-          internProfile.interview_score,
-          internProfile.interview_feedback,
-          internProfile.evaluation1_score,
-          internProfile.evaluation2_score,
-          internProfile.evaluation1_feedback,
-          internProfile.evaluation2_feedback,
-          internProfile.status,
-          internProfile.project_details,
-          user_id
-        ], (err) => {
-          if (err) {
-            console.error("Error updating intern profile:", err);
-            return res.status(500).json({ error: "Internal server error" });
-          }
+        sql.query(
+          connectionString,
+          updateQuery,
+          [
+            internProfile.university,
+            internProfile.accomplishments,
+            internProfile.gpa,
+            internProfile.mentor_id,
+            internProfile.evaluator_id,
+            internProfile.assigned_team,
+            internProfile.interview_score,
+            internProfile.interview_feedback,
+            internProfile.evaluation1_score,
+            internProfile.evaluation2_score,
+            internProfile.evaluation1_feedback,
+            internProfile.evaluation2_feedback,
+            internProfile.status,
+            internProfile.project_details,
+            user_id,
+          ],
+          (err) => {
+            if (err) {
+              console.error("Error updating intern profile:", err);
+              return res.status(500).json({ error: "Internal server error" });
+            }
 
-          // Return the success response for the update
-          res.status(200).json({
-            message: "Intern profile updated successfully",
-            data: internProfile,
-          });
-        });
+            // Return the success response for the update
+            res.status(200).json({
+              message: "Intern profile updated successfully",
+              data: internProfile,
+            });
+          }
+        );
       } else {
         // Insert a new intern profile
         const insertQuery = `
@@ -404,34 +410,39 @@ app.post("/api/interns/:id", async (req, res) => {
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
-        sql.query(connectionString, insertQuery, [
-          user_id,
-          internProfile.university,
-          internProfile.accomplishments,
-          internProfile.gpa,
-          internProfile.mentor_id,
-          internProfile.evaluator_id,
-          internProfile.assigned_team,
-          internProfile.interview_score,
-          internProfile.interview_feedback,
-          internProfile.evaluation1_score,
-          internProfile.evaluation2_score,
-          internProfile.evaluation1_feedback,
-          internProfile.evaluation2_feedback,
-          internProfile.status,
-          internProfile.project_details
-        ], (err) => {
-          if (err) {
-            console.error("Error creating intern profile:", err);
-            return res.status(500).json({ error: "Internal server error" });
-          }
+        sql.query(
+          connectionString,
+          insertQuery,
+          [
+            user_id,
+            internProfile.university,
+            internProfile.accomplishments,
+            internProfile.gpa,
+            internProfile.mentor_id,
+            internProfile.evaluator_id,
+            internProfile.assigned_team,
+            internProfile.interview_score,
+            internProfile.interview_feedback,
+            internProfile.evaluation1_score,
+            internProfile.evaluation2_score,
+            internProfile.evaluation1_feedback,
+            internProfile.evaluation2_feedback,
+            internProfile.status,
+            internProfile.project_details,
+          ],
+          (err) => {
+            if (err) {
+              console.error("Error creating intern profile:", err);
+              return res.status(500).json({ error: "Internal server error" });
+            }
 
-          // Return the success response for the insert
-          res.status(201).json({
-            message: "Intern profile created/updated successfully",
-            data: internProfile,
-          });
-        });
+            // Return the success response for the insert
+            res.status(201).json({
+              message: "Intern profile created/updated successfully",
+              data: internProfile,
+            });
+          }
+        );
       }
     });
   } catch (error) {
@@ -463,7 +474,6 @@ app.post("/api/login", async (req, res) => {
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 });
-
 
 // Route for creating a new account
 app.post("/api/register", async (req, res) => {
@@ -549,7 +559,18 @@ app.put("/api/users/:id", async (req, res) => {
   const { id } = req.params;
   const { role_id } = req.body;
 
-  const role = role_id === 4 ? "Intern" : role_id === 1 ? "Admin" : role_id === 3 ? "Mentor" : role_id === 2 ? "Evaluator" : role_id === 5 ? "Management" : "Unknown";
+  const role =
+    role_id === 4
+      ? "Intern"
+      : role_id === 1
+      ? "Admin"
+      : role_id === 3
+      ? "Mentor"
+      : role_id === 2
+      ? "Evaluator"
+      : role_id === 5
+      ? "Management"
+      : "Unknown";
 
   // Validate data
   if (!role_id) {
@@ -607,10 +628,16 @@ app.put("/api/interns/:id", async (req, res) => {
   const { status } = req.body;
 
   // Validate data
-  if (status !== "Pending" && status !== "Interview Scheduled" && status !== "Interview Complete" && status !== "Hired" && status !== "Rejected" && status !== "Internship Started" && status !== "Internship Ended") {
-    return res
-      .status(400)
-      .json({ message: "Please provide a valid status." });
+  if (
+    status !== "Pending" &&
+    status !== "Interview Scheduled" &&
+    status !== "Interview Complete" &&
+    status !== "Hired" &&
+    status !== "Rejected" &&
+    status !== "Internship Started" &&
+    status !== "Internship Ended"
+  ) {
+    return res.status(400).json({ message: "Please provide a valid status." });
   }
 
   try {
@@ -659,15 +686,16 @@ app.put("/api/interns/:id", async (req, res) => {
 });
 
 
-app.post('/api/invite', (req, res) => {
-  const { to, subject, text } = req.body;
+app.post("/api/invite", (req, res) => {
+  const { to, firstName, lastName } = req.body;
+  const subject = "Invitation to InternX - Your Intern Management Solution";
 
   // Replace with your email and password
   const mailTransporter = nodemailer.createTransport({
-    service: 'gmail',
+    service: "gmail",
     auth: {
       user: process.env.GMAIL_USERNAME,
-      pass: process.env.GMAIL_APP_PASSWORD
+      pass: process.env.GMAIL_APP_PASSWORD,
     },
   });
 
@@ -675,20 +703,110 @@ app.post('/api/invite', (req, res) => {
     from: process.env.GMAIL_USERNAME,
     to,
     subject,
-    text,
+    html: `
+    <!DOCTYPE html>
+    <html lang="en">
+    
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${subject}</title>
+        <style>
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(to bottom, #fafafa, #e0e0e0);
+                color: #333;
+            }
+    
+            .container {
+                max-width: 600px;
+                margin: 20px auto;
+                background-color: #ffffff;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+                text-align: center;
+            }
+    
+            h1 {
+                color: #3498db;
+                margin-bottom: 20px;
+            }
+    
+            p {
+                font-size: 16px;
+                line-height: 1.6;
+                margin-bottom: 20px;
+                color: #555;
+            }
+    
+            .button {
+                display: inline-block;
+                padding: 10px 20px;
+                font-size: 16px;
+                text-decoration: none;
+                background-color: #3498db;
+                color: #ffffff;
+                border-radius: 5px;
+                margin-top: 20px;
+                transition: background-color 0.3s ease;
+                box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            }
+    
+            .button:hover {
+                background-color: #2772a4;
+            }
+    
+            .greeting {
+                color: #3498db;
+                margin-bottom: 10px;
+            }
+    
+            /* Additional Styles */
+            a {
+                color: #3498db;
+                text-decoration: none;
+            }
+    
+            a:hover {
+                color: #2772a4;
+            }
+    
+            /* Add more styles for any other elements as needed */
+        </style>
+    </head>
+    
+    <body>
+        <div class="container">
+            <h1>${subject}</h1>
+            <p class="greeting">Hello, ${firstName} ${lastName}!</p>
+            <p>
+                Welcome to InternX, your premier Intern Management System! InternX
+                offers a comprehensive solution to streamline your intern management
+                process, providing a seamless experience for both administrators and
+                users.
+            </p>
+            <img src="https://www.pngall.com/wp-content/uploads/4/Welcome-PNG-Download-Image.png" alt="Welcome Image" style="width: 100%; max-width: 400px; margin: 20px auto;">
+            <a class="button" href="#">Get Started with InternX</a>
+        </div>
+    </body>
+    </html>
+    
+    `,
   };
 
   mailTransporter.sendMail(mailDetails, (err, data) => {
     if (err) {
-      console.log('Error Occurs', err);
-      res.status(500).json({ error: 'Error sending email' });
+      console.log("Error Occurs", err);
+      res.status(500).json({ error: "Error sending email" });
     } else {
-      console.log('Email sent successfully');
-      res.status(200).json({ message: 'Email sent successfully' });
+      console.log("Email sent successfully");
+      res.status(200).json({ message: "Email sent successfully" });
     }
   });
 });
-
 
 // Start the server
 app.listen(port, () => {
