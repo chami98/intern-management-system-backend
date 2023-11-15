@@ -705,91 +705,95 @@ app.post("/api/invite", (req, res) => {
     subject,
     html: `
     <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${subject}</title>
-    <style>
-        body {
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(to bottom, #fafafa, #e0e0e0);
-            color: #333;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 20px auto;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        h1 {
-            color: #3498db;
-            margin-bottom: 20px;
-        }
-
-        p {
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            color: #555;
-        }
-
-        .button {
-            display: inline-block;
-            padding: 10px 20px;
-            font-size: 16px;
-            text-decoration: none;
-            background-color: #3498db;
-            color: #ffffff;
-            border-radius: 5px;
-            margin-top: 20px;
-            transition: background-color 0.3s ease;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .button:hover {
-            background-color: #2772a4;
-        }
-
-        .greeting {
-            color: #3498db;
-            margin-bottom: 10px;
-        }
-
-        /* Additional Styles */
-        a {
-            color: #3498db;
-            text-decoration: none;
-        }
-
-        a:hover {
-            color: #2772a4;
-        }
-
-        /* Add more styles for any other elements as needed */
-    </style>
-</head>
-<body>
-<div class="container">
-    <h1>${subject}</h1>
-    <p class="greeting">Hello, ${firstName} ${lastName}!</p>
-    <p>
-        Welcome to InternX, your premier Intern Management System! InternX
-        offers a comprehensive solution to streamline your intern management
-        process, providing a seamless experience for both administrators and
-        users.
-    </p>
-    <a class="button" href="#">Get Started with InternX</a>
-</div>
-</body>
-</html>
+    <html lang="en">
+    
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>${subject}</title>
+        <style>
+            body {
+                font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(to bottom, #fafafa, #e0e0e0);
+                color: #333;
+            }
+    
+            .container {
+                max-width: 600px;
+                margin: 20px auto;
+                background-color: #ffffff;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+                text-align: center;
+            }
+    
+            h1 {
+                color: #3498db;
+                margin-bottom: 20px;
+            }
+    
+            p {
+                font-size: 16px;
+                line-height: 1.6;
+                margin-bottom: 20px;
+                color: #555;
+            }
+    
+            .button {
+                display: inline-block;
+                padding: 10px 20px;
+                font-size: 16px;
+                text-decoration: none;
+                background-color: #3498db;
+                color: #ffffff;
+                border-radius: 5px;
+                margin-top: 20px;
+                transition: background-color 0.3s ease;
+                box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            }
+    
+            .button:hover {
+                background-color: #2772a4;
+            }
+    
+            .greeting {
+                color: #3498db;
+                margin-bottom: 10px;
+            }
+    
+            /* Additional Styles */
+            a {
+                color: #3498db;
+                text-decoration: none;
+            }
+    
+            a:hover {
+                color: #2772a4;
+            }
+    
+            /* Add more styles for any other elements as needed */
+        </style>
+    </head>
+    
+    <body>
+        <div class="container">
+            <h1>${subject}</h1>
+            <p class="greeting">Hello, ${firstName} ${lastName}!</p>
+            <p>
+                Welcome to InternX, your premier Intern Management System! InternX
+                offers a comprehensive solution to streamline your intern management
+                process, providing a seamless experience for both administrators and
+                users.
+            </p>
+            <img src="https://www.pngall.com/wp-content/uploads/4/Welcome-PNG-Download-Image.png" alt="Welcome Image" style="width: 100%; max-width: 400px; margin: 20px auto;">
+            <a class="button" href="#">Get Started with InternX</a>
+        </div>
+    </body>
+    </html>
+    
     `,
   };
 
