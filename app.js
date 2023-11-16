@@ -259,36 +259,42 @@ app.get("/api/interns/:id", async (req, res) => {
   }
 });
 
-// route to get all interns from  mssql database
+// Define a GET endpoint for "/api/interns"
 app.get("/api/interns", async (req, res) => {
   try {
+    // Define the SQL query to retrieve intern profiles
+    // The query selects various fields from the Users and Interns tables
+    // It joins the Users and Interns tables on the user_id field
+    // It only selects users with a role_id of 4 (presumably interns)
     const query = `
-  SELECT
-    U.id,
-    U.first_name,
-    U.last_name,
-    U.email,
-    U.role_id,
-    I.university,
-    I.interview_score,
-    I.interview_feedback,
-    I.evaluation1_score,
-    I.evaluation1_feedback,
-    I.evaluation2_score,
-    I.evaluation2_feedback,
-    I.accomplishments,
-    I.gpa,
-    I.assigned_team,
-    I.project_details,
-    I.mentor_id,
-    I.cv_url,
-    I.status
-  FROM Users AS U
-  INNER JOIN Interns AS I ON U.id = I.user_id
-  WHERE U.role_id = 4
-`;
+      SELECT
+        U.id,
+        U.first_name,
+        U.last_name,
+        U.email,
+        U.role_id,
+        I.university,
+        I.interview_score,
+        I.interview_feedback,
+        I.evaluation1_score,
+        I.evaluation1_feedback,
+        I.evaluation2_score,
+        I.evaluation2_feedback,
+        I.accomplishments,
+        I.gpa,
+        I.assigned_team,
+        I.project_details,
+        I.mentor_id,
+        I.cv_url,
+        I.status
+      FROM Users AS U
+      INNER JOIN Interns AS I ON U.id = I.user_id
+      WHERE U.role_id = 4
+    `;
 
     // Execute the SQL query to retrieve all interns
+    // If there's an error, log it and send a 500 response
+    // If there's no error, send the results back to the client
     sql.query(connectionString, query, (err, results) => {
       if (err) {
         console.error("Error fetching interns:", err);
@@ -298,6 +304,7 @@ app.get("/api/interns", async (req, res) => {
       }
     });
   } catch (error) {
+    // If there's an error in the try block, log it and send a 500 response
     console.error("Error in the try-catch block:", error);
     res.status(500).json({ error: "Internal server error" });
   }
