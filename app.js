@@ -473,12 +473,18 @@ app.post("/api/interns/:id", async (req, res) => {
 
 // Login route to authenticate users and issue JWT token
 app.post("/api/login", async (req, res) => {
+  // Extract the email and password from the request body
   const { email, password } = req.body;
 
   try {
+    // Call the authenticateUser function with the provided email and password
+    // This function is expected to return an object with a "success" property
+    // If "success" is true, the object should also contain "user" and "token" properties
     const authenticatedUser = await authenticateUser(email, password);
 
     if (authenticatedUser.success) {
+      // If the user was authenticated successfully, log the result and send a response
+      // The response contains the authenticated user and the token
       console.log("Authenticated user:", authenticatedUser);
       res.json({
         success: true,
@@ -486,10 +492,12 @@ app.post("/api/login", async (req, res) => {
         token: authenticatedUser.token,
       });
     } else {
+      // If the user was not authenticated successfully, log the email and send a 401 response
       console.log("Authentication failed for:", email);
       res.status(401).json({ success: false, message: "Invalid credentials." });
     }
   } catch (error) {
+    // If there's an error during authentication, log it and send a 500 response
     console.error("Error during authentication:", error);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
