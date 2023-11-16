@@ -169,6 +169,9 @@ app.get("/api/users", async (req, res) => {
 app.get("/api/internProfiles", async (req, res) => {
   try {
     // Define the SQL query to retrieve intern profiles
+    // The query selects various fields from the Users and Interns tables
+    // It joins the Users and Interns tables on the user_id field
+    // It only selects users with a role_id of 5 (presumably interns)
     const query = `
       SELECT
         U.first_name,
@@ -190,16 +193,18 @@ app.get("/api/internProfiles", async (req, res) => {
     `;
 
     // Execute the SQL query to retrieve intern profiles
+    // If there's an error, log it and send a 500 response
+    // If there's no error, send the results back to the client
     sql.query(connectionString, query, (err, results) => {
       if (err) {
         console.error("Error fetching intern profiles:", err);
         res.status(500).json({ error: "Internal server error" });
       } else {
-        // Send the results back to the client
         res.json(results);
       }
     });
   } catch (error) {
+    // If there's an error in the try block, log it and send a 500 response
     console.error("Error in the try-catch block:", error);
     res.status(500).json({ error: "Internal server error" });
   }
