@@ -123,9 +123,11 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
 
 // route to get all users from aws rds mssql database with optional query param
 app.get("/api/users", async (req, res) => {
+  // Extract the user role from the query parameters
   const { user } = req.query;
   let role_id = undefined;
 
+  // Map the user role to a role ID
   if (user === "intern") {
     role_id = 4;
   } else if (user === "admin") {
@@ -139,7 +141,9 @@ app.get("/api/users", async (req, res) => {
   }
 
   try {
+    // Define the base SQL query
     let query = "SELECT id, first_name, last_name, email, role_id FROM Users";
+    // If a role ID is defined, add a WHERE clause to the query
     if (role_id) {
       query += ` WHERE role_id = ${role_id}`;
     }
@@ -151,6 +155,7 @@ app.get("/api/users", async (req, res) => {
         console.error("Error fetching users:", err);
         res.status(500).json({ error: "Internal server error" });
       } else {
+        // Send the results back to the client
         res.json(results);
       }
     });
@@ -160,8 +165,10 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
+// Define a GET endpoint for "/api/internProfiles"
 app.get("/api/internProfiles", async (req, res) => {
   try {
+    // Define the SQL query to retrieve intern profiles
     const query = `
       SELECT
         U.first_name,
@@ -188,6 +195,7 @@ app.get("/api/internProfiles", async (req, res) => {
         console.error("Error fetching intern profiles:", err);
         res.status(500).json({ error: "Internal server error" });
       } else {
+        // Send the results back to the client
         res.json(results);
       }
     });
@@ -687,7 +695,7 @@ app.put("/api/interns/:id", async (req, res) => {
 
 
 app.post("/api/invite", (req, res) => {
-  const { to, firstName, lastName } = req.body;
+  const { email, name } = req.body;
   const subject = "Invitation to InternX - Your Intern Management Solution";
 
   // Replace with your email and password
@@ -701,7 +709,7 @@ app.post("/api/invite", (req, res) => {
 
   const mailDetails = {
     from: process.env.GMAIL_USERNAME,
-    to,
+    to : email,
     subject,
     html: `
     <!DOCTYPE html>
@@ -781,7 +789,7 @@ app.post("/api/invite", (req, res) => {
     <body>
         <div class="container">
             <h1>${subject}</h1>
-            <p class="greeting">Hello, ${firstName} ${lastName}!</p>
+            <p class="greeting">Hello, ${name}!</p>
             <p>
                 Welcome to InternX, your premier Intern Management System! InternX
                 offers a comprehensive solution to streamline your intern management
