@@ -471,6 +471,199 @@ app.post("/api/interns/:id", async (req, res) => {
   }
 });
 
+// Route to insert data into the EvaluationForms table
+app.post("/api/evaluationForms", async (req, res) => {
+  const {
+    assigned_evaluator_id,
+    assigned_mentor_id,
+    intern_id,
+    coding_skills,
+    problem_solving,
+    algorithmic_understanding,
+    meeting_deadlines,
+    quality_of_code,
+    innovative_solutions,
+    team_collaboration,
+    documentation_skills,
+    communication_clarity,
+    quick_grasping,
+    adaptability_to_changes,
+    overall_performance,
+    comment_mentor,
+    comment_evaluator,
+  } = req.body;
+
+  // Validate data
+  if (
+    !assigned_evaluator_id ||
+    !assigned_mentor_id ||
+    !intern_id ||
+    !coding_skills ||
+    !problem_solving ||
+    !algorithmic_understanding ||
+    !meeting_deadlines ||
+    !quality_of_code ||
+    !innovative_solutions ||
+    !team_collaboration ||
+    !documentation_skills ||
+    !communication_clarity ||
+    !quick_grasping ||
+    !adaptability_to_changes ||
+    !overall_performance ||
+    !comment_mentor ||
+    !comment_evaluator
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Please provide all required fields." });
+  }
+
+  try {
+    // Check if the record already exists
+    const selectQuery = `
+      SELECT * FROM EvaluationForms WHERE intern_id = ?
+    `;
+
+    sql.query(
+      connectionString,
+      selectQuery,
+      [intern_id],
+      (selectErr, selectResult) => {
+        if (selectErr) {
+          console.error("Error checking if the record exists:", selectErr);
+          return res.status(500).json({ error: "Internal server error" });
+        }
+
+        if (selectResult.length > 0) {
+          // Record exists, update the table
+          const updateQuery = `
+            UPDATE EvaluationForms
+            SET
+              assigned_evaluator_id = ?,
+              assigned_mentor_id = ?,
+              coding_skills = ?,
+              problem_solving = ?,
+              algorithmic_understanding = ?,
+              meeting_deadlines = ?,
+              quality_of_code = ?,
+              innovative_solutions = ?,
+              team_collaboration = ?,
+              documentation_skills = ?,
+              communication_clarity = ?,
+              quick_grasping = ?,
+              adaptability_to_changes = ?,
+              overall_performance = ?,
+              comment_mentor = ?,
+              comment_evaluator = ?
+            WHERE intern_id = ?
+          `;
+
+          sql.query(
+            connectionString,
+            updateQuery,
+            [
+              assigned_evaluator_id,
+              assigned_mentor_id,
+              coding_skills,
+              problem_solving,
+              algorithmic_understanding,
+              meeting_deadlines,
+              quality_of_code,
+              innovative_solutions,
+              team_collaboration,
+              documentation_skills,
+              communication_clarity,
+              quick_grasping,
+              adaptability_to_changes,
+              overall_performance,
+              comment_mentor,
+              comment_evaluator,
+              intern_id,
+            ],
+            (updateErr, updateResult) => {
+              if (updateErr) {
+                console.error("Error updating data in EvaluationForms:", updateErr);
+                return res.status(500).json({ error: "Internal server error" });
+              }
+
+              // Return success response
+              res.status(200).json({
+                message: "Data updated in EvaluationForms successfully",
+                data: updateResult,
+              });
+            }
+          );
+        } else {
+          // Record doesn't exist, insert into the table
+          const insertQuery = `
+            INSERT INTO EvaluationForms (
+              assigned_evaluator_id,
+              assigned_mentor_id,
+              intern_id,
+              coding_skills,
+              problem_solving,
+              algorithmic_understanding,
+              meeting_deadlines,
+              quality_of_code,
+              innovative_solutions,
+              team_collaboration,
+              documentation_skills,
+              communication_clarity,
+              quick_grasping,
+              adaptability_to_changes,
+              overall_performance,
+              comment_mentor,
+              comment_evaluator
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `;
+
+          sql.query(
+            connectionString,
+            insertQuery,
+            [
+              assigned_evaluator_id,
+              assigned_mentor_id,
+              intern_id,
+              coding_skills,
+              problem_solving,
+              algorithmic_understanding,
+              meeting_deadlines,
+              quality_of_code,
+              innovative_solutions,
+              team_collaboration,
+              documentation_skills,
+              communication_clarity,
+              quick_grasping,
+              adaptability_to_changes,
+              overall_performance,
+              comment_mentor,
+              comment_evaluator,
+            ],
+            (insertErr, insertResult) => {
+              if (insertErr) {
+                console.error("Error inserting data into EvaluationForms:", insertErr);
+                return res.status(500).json({ error: "Internal server error" });
+              }
+
+              // Return success response
+              res.status(201).json({
+                message: "Data inserted into EvaluationForms successfully",
+                data: insertResult,
+              });
+            }
+          );
+        }
+      }
+    );
+  } catch (error) {
+    console.error("Error processing data for EvaluationForms:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+
 // Login route to authenticate users and issue JWT token
 app.post("/api/login", async (req, res) => {
   // Extract the email and password from the request body
