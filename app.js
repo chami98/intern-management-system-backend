@@ -662,6 +662,128 @@ app.post("/api/evaluationForms", async (req, res) => {
   }
 });
 
+// Route to get data from the EvaluationForms table
+app.get("/api/evaluationForms", async (req, res) => {
+  try {
+    // Define the SQL query to retrieve evaluation forms
+    const query = `
+      SELECT
+        EF.id,
+        EF.assigned_evaluator_id,
+        EF.assigned_mentor_id,
+        EF.intern_id,
+        EF.coding_skills,
+        EF.problem_solving,
+        EF.algorithmic_understanding,
+        EF.meeting_deadlines,
+        EF.quality_of_code,
+        EF.innovative_solutions,
+        EF.team_collaboration,
+        EF.documentation_skills,
+        EF.communication_clarity,
+        EF.quick_grasping,
+        EF.adaptability_to_changes,
+        EF.overall_performance,
+        EF.comment_mentor,
+        EF.comment_evaluator,
+        U.first_name AS evaluator_first_name,
+        U.last_name AS evaluator_last_name,
+        U.email AS evaluator_email,
+        U.role_id AS evaluator_role_id,
+        U2.first_name AS mentor_first_name,
+        U2.last_name AS mentor_last_name,
+        U2.email AS mentor_email,
+        U3.first_name AS intern_first_name,
+        U3.last_name AS intern_last_name,
+        U3.email AS intern_email
+      FROM EvaluationForms AS EF
+      LEFT JOIN Users AS U ON EF.assigned_evaluator_id = U.id
+      LEFT JOIN Users AS U2 ON EF.assigned_mentor_id = U2.id
+      LEFT JOIN Users AS U3 ON EF.intern_id = U3.id
+    `;
+
+    // Execute the SQL query to retrieve evaluation forms
+    // If there's an error, log it and send a 500 response
+    // If there's no error, send the results back to the client
+    sql.query(connectionString, query, (err, results) => {
+      if (err) {
+        console.error("Error fetching evaluation forms:", err);
+        res.status(500).json({ error: "Internal server error" });
+      } else {
+        res.json(results);
+      }
+    });
+  } catch (error) {
+    // If there's an error in the try block, log it and send a 500 response
+    console.error("Error in the try-catch block:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Route to get data from the EvaluationForms table by ID
+app.get("/api/evaluationForms/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Define the SQL query to retrieve evaluation forms
+    const query = `
+      SELECT
+        EF.id,
+        EF.assigned_evaluator_id,
+        EF.assigned_mentor_id,
+        EF.intern_id,
+        EF.coding_skills,
+        EF.problem_solving,
+        EF.algorithmic_understanding,
+        EF.meeting_deadlines,
+        EF.quality_of_code,
+        EF.innovative_solutions,
+        EF.team_collaboration,
+        EF.documentation_skills,
+        EF.communication_clarity,
+        EF.quick_grasping,
+        EF.adaptability_to_changes,
+        EF.overall_performance,
+        EF.comment_mentor,
+        EF.comment_evaluator,
+        U.first_name AS evaluator_first_name,
+        U.last_name AS evaluator_last_name,
+        U.email AS evaluator_email,
+        U.role_id AS evaluator_role_id,
+        U2.first_name AS mentor_first_name,
+        U2.last_name AS mentor_last_name,
+        U2.email AS mentor_email,
+        U3.first_name AS intern_first_name,
+        U3.last_name AS intern_last_name,
+        U3.email AS intern_email
+      FROM EvaluationForms AS EF
+      LEFT JOIN Users AS U ON EF.assigned_evaluator_id = U.id
+      LEFT JOIN Users AS U2 ON EF.assigned_mentor_id = U2.id
+      LEFT JOIN Users AS U3 ON EF.intern_id = U3.id
+      WHERE EF.intern_id = ${id}
+    `;
+
+    // Execute the SQL query to retrieve evaluation forms
+    // If there's an error, log it and send a 500 response
+    // If there's no error, send the results back to the client
+    sql.query(connectionString, query, (err, results) => {
+      if (results.length === 0) {
+        res.status(404).json({ error: "Evaluation form not found" });
+      }
+      else if (err) {
+        console.error("Error fetching evaluation forms:", err);
+        res.status(500).json({ error: "Internal server error" });
+      } else {
+        res.json(results[0]);
+      }
+    });
+  } catch (error) {
+    // If there's an error in the try block, log it and send a 500 response
+    console.error("Error in the try-catch block:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Route to get
 
 
 // Login route to authenticate users and issue JWT token
