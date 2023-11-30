@@ -662,10 +662,12 @@ app.post("/api/evaluationForms", async (req, res) => {
   }
 });
 
-// Route to get data from the EvaluationForms table
+// Define a GET endpoint for "/api/evaluationForms"
 app.get("/api/evaluationForms", async (req, res) => {
   try {
     // Define the SQL query to retrieve evaluation forms
+    // The query selects all columns from the EvaluationForms table
+    // It also joins the Users table to get the evaluator, mentor, and intern details
     const query = `
       SELECT
         EF.id,
@@ -703,18 +705,18 @@ app.get("/api/evaluationForms", async (req, res) => {
     `;
 
     // Execute the SQL query to retrieve evaluation forms
-    // If there's an error, log it and send a 500 response
-    // If there's no error, send the results back to the client
     sql.query(connectionString, query, (err, results) => {
       if (err) {
+        // If there's an error executing the query, log the error and send a 500 response
         console.error("Error fetching evaluation forms:", err);
         res.status(500).json({ error: "Internal server error" });
       } else {
+        // If there's no error, send the results back to the client
         res.json(results);
       }
     });
   } catch (error) {
-    // If there's an error in the try block, log it and send a 500 response
+    // If there's an error in the try block, log the error and send a 500 response
     console.error("Error in the try-catch block:", error);
     res.status(500).json({ error: "Internal server error" });
   }
